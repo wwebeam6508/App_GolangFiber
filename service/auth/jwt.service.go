@@ -3,11 +3,20 @@ package service
 import (
 	"PBD_backend_go/exception"
 	"os"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
 func generateJWT(payload jwt.MapClaims) (string, error) {
+	//get exp time
+	expTime := os.Getenv("JWT_ACCESS_TOKEN_EXP")
+	exp, err := time.ParseDuration(expTime)
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	payload["exp"] = time.Now().Add(exp).Unix()
+
 	secretKey := os.Getenv("JWT_ACCESS_TOKEN_SECRET")
 	signOption := jwt.SigningMethodHS256
 
@@ -21,6 +30,13 @@ func generateJWT(payload jwt.MapClaims) (string, error) {
 }
 
 func generateRefreshJWT(payload jwt.MapClaims) (string, error) {
+	//get exp time
+	expTime := os.Getenv("JWT_REFRESH_TOKEN_EXPIRE")
+	exp, err := time.ParseDuration(expTime)
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	payload["exp"] = time.Now().Add(exp).Unix()
 	secretKey := os.Getenv("JWT_REFRESH_TOKEN_SECRET")
 	signOption := jwt.SigningMethodHS256
 

@@ -2,20 +2,21 @@ package controller
 
 import (
 	"PBD_backend_go/exception"
-	service "PBD_backend_go/service/auth"
+	model "PBD_backend_go/model/auth"
+	auth "PBD_backend_go/service/auth"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func LoginController(c *fiber.Ctx) error {
-	var body LoginRequest
+	var body model.LoginRequest
 	err := c.BodyParser(&body)
 	if err != nil {
 		exception.PanicLogging(err)
 	}
 
 	// call the LoginService function
-	result, err := service.LoginService(body.username, body.password)
+	result, err := auth.LoginService(body)
 	if err != nil {
 		exception.PanicLogging(err)
 	}
