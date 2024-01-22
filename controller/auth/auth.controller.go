@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"PBD_backend_go/commonentity"
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/auth"
 	auth "PBD_backend_go/service/auth"
@@ -18,8 +19,16 @@ func LoginController(c *fiber.Ctx) error {
 	// call the LoginService function
 	result, err := auth.LoginService(body)
 	if err != nil {
-		exception.PanicLogging(err)
+		return c.Status(fiber.ErrNotAcceptable.Code).JSON(commonentity.GeneralResponse{
+			Code:    fiber.ErrNotAcceptable.Code,
+			Message: err.Error(),
+		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(result)
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    result,
+	})
+
 }

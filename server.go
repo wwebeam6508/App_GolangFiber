@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
-
-	"PBD_backend_go/configuration"
+	"PBD_backend_go/routes"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -27,14 +25,7 @@ func main() {
 
 	runEnv()
 
-	// call the ConnectToMongoDB function
-	client, err := configuration.ConnectToMongoDB()
-	if err != nil {
-		panic(err)
-	}
+	routes.SetupRoutes(app)
 
-	// Close the connection
-	defer client.Disconnect(context.Background())
-
-	app.Listen(":3000")
+	app.Listen("127.0.0.1:3000")
 }

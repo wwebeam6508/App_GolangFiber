@@ -1,7 +1,7 @@
 package exception
 
 import (
-	commonentity "PBD_backend_go/common_entity"
+	commonentity "PBD_backend_go/commonentity"
 	"encoding/json"
 
 	"github.com/gofiber/fiber/v2"

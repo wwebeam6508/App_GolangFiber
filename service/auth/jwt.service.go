@@ -10,7 +10,7 @@ import (
 
 func generateJWT(payload jwt.MapClaims) (string, error) {
 	//get exp time
-	expTime := os.Getenv("JWT_ACCESS_TOKEN_EXP")
+	expTime := os.Getenv("JWT_ACCESS_TOKEN_EXPIRE")
 	exp, err := time.ParseDuration(expTime)
 	if err != nil {
 		exception.PanicLogging(err)

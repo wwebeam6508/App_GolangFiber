@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func LoginService(input model.LoginRequest) (LoginServiceResult, error) {
+func LoginService(input model.LoginRequest) (bson.M, error) {
 	// call the ConnectToMongoDB function
 	coll, err := configuration.ConnectToMongoDB()
 	if err != nil {
@@ -25,21 +25,24 @@ func LoginService(input model.LoginRequest) (LoginServiceResult, error) {
 	lookupStage := bson.D{{"$lookup", bson.D{{"from", "userType"}, {"localField", "userTypeID"}, {"foreignField", "_id"}, {"as", "userType"}}}}
 	unwindStage := bson.D{{"$unwind", bson.D{{"path", "$userType"}}}}
 	projectStage := bson.D{{"$project", bson.D{{"_id", 0}, {"userID", "$_id"}, {"username", 1}, {"password", 1}, {"userType", bson.D{{"userTypeID", "$userType._id"}, {"name", "$userType.name"}, {"permission", "$userType.permission"}}}}}}
-	pipeline, err := coll.Database(os.Getenv("MONGO_DB_NAME")).Aggregate(context.Background(), mongo.Pipeline{matchStage, addFieldsStage, lookupStage, unwindStage, projectStage})
+	collection := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users")
+	cursor, err := collection.Aggregate(context.Background(), mongo.Pipeline{matchStage, addFieldsStage, lookupStage, unwindStage, projectStage})
 	if err != nil {
 		exception.PanicLogging(err)
 	}
-	var result UserProfile
-	if err = pipeline.All(context.Background(), &result); err != nil {
+	var result []bson.M
+	if err = cursor.All(context.Background(), &result); err != nil {
 		exception.PanicLogging(err)
 	}
-	isValidPass := bcrypt.CompareHashAndPassword([]byte(result.password), []byte(input.Password))
-	if isValidPass == nil {
-		exception.PanicLogging(exception.UnauthorizedError{Message: "Invalid password"})
+
+	password := result[0]["password"].(string)
+	is_error := bcrypt.CompareHashAndPassword([]byte(password), []byte(input.Password))
+	if is_error != nil {
+		return bson.M{}, is_error
 	}
 	// generate access token payload as result secrekey is from env signOption issuer audience expiresIn
 	claims := jwt.MapClaims{
-		"userProfile": result,
+		"userProfile": result[0],
 	}
 	accessToken, err := generateJWT(claims)
 	if err != nil {
@@ -50,29 +53,12 @@ func LoginService(input model.LoginRequest) (LoginServiceResult, error) {
 	if err != nil {
 		exception.PanicLogging(err)
 	}
+	//disconnect from db
+	defer coll.Disconnect(context.Background())
 
-	return LoginServiceResult{
-		accessToken:  accessToken,
-		refreshToken: refreshToken,
-		userProfile:  UserProfile(result),
+	return bson.M{
+		"accessToken":  accessToken,
+		"refreshToken": refreshToken,
+		"userProfile":  result[0],
 	}, err
-}
-
-type UserType struct {
-	userTypeID  string
-	name        string
-	permissions []string
-}
-
-type UserProfile struct {
-	userID   string
-	username string
-	password string
-	userType UserType
-}
-
-type LoginServiceResult struct {
-	accessToken  string
-	refreshToken string
-	userProfile  UserProfile
 }
