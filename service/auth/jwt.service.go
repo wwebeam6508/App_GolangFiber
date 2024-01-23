@@ -13,7 +13,7 @@ func generateJWT(payload jwt.MapClaims) (string, error) {
 	expTime := os.Getenv("JWT_ACCESS_TOKEN_EXPIRE")
 	exp, err := time.ParseDuration(expTime)
 	if err != nil {
-		exception.PanicLogging(err)
+		return "", err
 	}
 	payload["exp"] = time.Now().Add(exp).Unix()
 
@@ -23,7 +23,7 @@ func generateJWT(payload jwt.MapClaims) (string, error) {
 	token := jwt.NewWithClaims(signOption, payload)
 	tokenString, err := token.SignedString([]byte(secretKey))
 	if err != nil {
-		exception.PanicLogging(err)
+		return "", err
 	}
 
 	return "Bearer " + tokenString, nil
@@ -34,7 +34,7 @@ func generateRefreshJWT(payload jwt.MapClaims) (string, error) {
 	expTime := os.Getenv("JWT_REFRESH_TOKEN_EXPIRE")
 	exp, err := time.ParseDuration(expTime)
 	if err != nil {
-		exception.PanicLogging(err)
+		return "", err
 	}
 	payload["exp"] = time.Now().Add(exp).Unix()
 	secretKey := os.Getenv("JWT_REFRESH_TOKEN_SECRET")
@@ -43,7 +43,7 @@ func generateRefreshJWT(payload jwt.MapClaims) (string, error) {
 	token := jwt.NewWithClaims(signOption, payload)
 	tokenString, err := token.SignedString([]byte(secretKey))
 	if err != nil {
-		exception.PanicLogging(err)
+		return "", err
 	}
 
 	return "Bearer " + tokenString, nil
@@ -60,7 +60,7 @@ func verifyJWT(tokenString string) (*jwt.Token, error) {
 	})
 
 	if err != nil {
-		exception.PanicLogging(err)
+		return nil, err
 	}
 
 	return token, nil
@@ -77,7 +77,7 @@ func verifyRefreshJWT(tokenString string) (*jwt.Token, error) {
 	})
 
 	if err != nil {
-		exception.PanicLogging(err)
+		return nil, err
 	}
 
 	return token, nil

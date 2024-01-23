@@ -2,6 +2,7 @@ package main
 
 import (
 	"PBD_backend_go/routes"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -27,5 +28,5 @@ func main() {
 
 	routes.SetupRoutes(app)
 
-	app.Listen("127.0.0.1:3000")
+	app.Listen(`127.0.0.1:` + os.Getenv(`GO_PORT`))
 }
