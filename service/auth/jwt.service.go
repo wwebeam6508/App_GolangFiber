@@ -2,10 +2,12 @@ package service
 
 import (
 	"PBD_backend_go/exception"
+	"errors"
 	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gofiber/fiber/v2"
 )
 
 func generateJWT(payload jwt.MapClaims) (string, error) {
@@ -49,12 +51,12 @@ func generateRefreshJWT(payload jwt.MapClaims) (string, error) {
 	return "Bearer " + tokenString, nil
 }
 
-func verifyJWT(tokenString string) (*jwt.Token, error) {
+func VerifyJWT(tokenString string) (*jwt.Token, error) {
 	secretKey := os.Getenv("JWT_ACCESS_TOKEN_SECRET")
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			exception.PanicLogging("Error while parsing token")
+			exception.ErrorHandler(&fiber.Ctx{}, errors.New("error while parsing token"))
 		}
 		return []byte(secretKey), nil
 	})
@@ -66,12 +68,12 @@ func verifyJWT(tokenString string) (*jwt.Token, error) {
 	return token, nil
 }
 
-func verifyRefreshJWT(tokenString string) (*jwt.Token, error) {
+func VerifyRefreshJWT(tokenString string) (*jwt.Token, error) {
 	secretKey := os.Getenv("JWT_REFRESH_TOKEN_SECRET")
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			exception.PanicLogging("Error while parsing token")
+			exception.ErrorHandler(&fiber.Ctx{}, errors.New("error while parsing token"))
 		}
 		return []byte(secretKey), nil
 	})

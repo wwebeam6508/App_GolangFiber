@@ -15,6 +15,10 @@ type RefreshTokenRequest struct {
 	RefreshToken string
 }
 
+type UserIDInput struct {
+	UserID string
+}
+
 type TokenInput struct {
 	Token  string
 	UserID string
@@ -47,5 +51,10 @@ type RefreshTokenResult struct {
 type ChangePasswordRequest struct {
 	Password        string `json:"Password" bson:"Password"`
 	ConfirmPassword string `json:"ConfirmPassword" bson:"ConfirmPassword"`
-	UserID          string `json:"UserID" bson:"UserID"`
+}
+
+type ChangePasswordInput struct {
+	UserID          string `json:"userID" bson:"userID"`
+	Password        string `json:"Password" bson:"Password"`
+	ConfirmPassword string `json:"ConfirmPassword" bson:"ConfirmPassword"`
 }

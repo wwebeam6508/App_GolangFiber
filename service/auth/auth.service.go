@@ -124,7 +124,7 @@ func CheckRefreshTokenService(input model.TokenInput) bool {
 
 func RefreshTokenService(token string) model.RefreshTokenResult {
 	// call verifyJWT function
-	claims, err := verifyJWT(token)
+	claims, err := VerifyJWT(token)
 	if err != nil {
 		err := exception.ValidationError{Message: "invalid token"}
 		exception.ErrorHandler(&fiber.Ctx{}, err)
@@ -233,7 +233,7 @@ func FetchUserDataService(userID string) model.UserResult {
 	}
 }
 
-func ChangePasswordDataService(input model.ChangePasswordRequest) bool {
+func ChangePasswordDataService(input model.ChangePasswordInput) bool {
 	// check password and confirm password
 	if input.Password != input.ConfirmPassword {
 		//exception errorhandler ValidationError
