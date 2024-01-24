@@ -11,7 +11,11 @@ type LoginRequest struct {
 	Password string
 }
 
-type TokenRequest struct {
+type RefreshTokenRequest struct {
+	RefreshToken string
+}
+
+type TokenInput struct {
 	Token  string
 	UserID string
 }
