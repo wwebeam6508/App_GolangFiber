@@ -17,11 +17,23 @@ func LoginController(c *fiber.Ctx) error {
 	var body model.LoginRequest
 	err := c.BodyParser(&body)
 	if err != nil {
-		exception.ErrorHandler(c, err)
+		return exception.ErrorHandler(c, err)
 	}
 
 	// call the LoginService function
-	result := authservice.LoginService(body)
+	result, err := authservice.LoginService(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	//update refresh token
+	tokenInput := model.TokenInput{
+		Token:  result.RefreshToken,
+		UserID: result.UserProfile.UserID.Hex(),
+	}
+	err = authservice.UpdateRefreshTokenService(tokenInput)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
 
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
@@ -34,17 +46,23 @@ func RefreshTokenController(c *fiber.Ctx) error {
 	var body model.RefreshTokenRequest
 	err := c.BodyParser(&body)
 	if err != nil {
-		exception.ErrorHandler(c, err)
+		return exception.ErrorHandler(c, err)
 	}
 
 	// call the RefreshTokenService function
-	result := authservice.RefreshTokenService(strings.Split(body.RefreshToken, " ")[1])
+	result, err := authservice.RefreshTokenService(strings.Split(body.RefreshToken, " ")[1])
 	tokenInpu := model.TokenInput{
 		Token:  body.RefreshToken,
 		UserID: result.UserID,
 	}
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
 	//call update refresh token
-	authservice.UpdateRefreshTokenService(tokenInpu)
+	err = authservice.UpdateRefreshTokenService(tokenInpu)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
 
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
@@ -56,7 +74,10 @@ func RefreshTokenController(c *fiber.Ctx) error {
 func FetchUserController(c *fiber.Ctx) error {
 	userID := c.Query("userID")
 	// call the FetchUserService function
-	result := authservice.FetchUserDataService(userID)
+	result, err := authservice.FetchUserDataService(userID)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
 
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
@@ -69,9 +90,12 @@ func LogoutController(c *fiber.Ctx) error {
 	var body model.UserIDInput
 	err := c.BodyParser(&body)
 	if err != nil {
-		exception.ErrorHandler(c, err)
+		return exception.ErrorHandler(c, err)
 	}
-	authservice.RemoveRefreshTokenService(body.UserID)
+	err = authservice.RemoveRefreshTokenService(body.UserID)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
 
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
@@ -84,13 +108,18 @@ func ChangePasswordController(c *fiber.Ctx) error {
 	var body model.ChangePasswordRequest
 	err := c.BodyParser(&body)
 	if err != nil {
-		exception.ErrorHandler(c, err)
+		return exception.ErrorHandler(c, err)
 	}
 	//verify JWT by headers.Authorization and split to get token
-	token := strings.Split(c.Get("Authorization"), " ")[1]
+	split := strings.Split(c.Get("Authorization"), " ")
+	//check if split is 2 or not
+	if len(split) != 2 {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: "invalid token"})
+	}
+	token := split[1]
 	claims, err := authservice.VerifyJWT(token)
 	if err != nil {
-		exception.ErrorHandler(c, err)
+		return exception.ErrorHandler(c, err)
 	}
 	//get userID from claims
 	userID := claims.Claims.(jwt.MapClaims)["data"].(map[string]interface{})["userID"].(string)

@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"reflect"
 	"time"
 )
 
@@ -23,4 +24,19 @@ type UserType struct {
 	Permission Permissions `json:"permission" bson:"permission"`
 	Status     int         `json:"status" bson:"status"`
 	CreatedAt  time.Time   `json:"createdAt" bson:"createdAt"`
+}
+
+func NewPermission() Permissions {
+	permission := Permissions{}
+
+	vPermission := reflect.ValueOf(&permission).Elem()
+
+	for i := 0; i < vPermission.NumField(); i++ {
+		vPermission.Field(i).Set(reflect.ValueOf(PermissionDetail{
+			CanEdit:   false,
+			CanRemove: false,
+			CanView:   false,
+		}))
+	}
+	return permission
 }

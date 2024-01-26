@@ -2,12 +2,10 @@ package service
 
 import (
 	"PBD_backend_go/exception"
-	"errors"
 	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gofiber/fiber/v2"
 )
 
 func generateJWT(payload jwt.MapClaims) (string, error) {
@@ -56,7 +54,7 @@ func VerifyJWT(tokenString string) (*jwt.Token, error) {
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			exception.ErrorHandler(&fiber.Ctx{}, errors.New("error while parsing token"))
+			return nil, exception.ValidationError{Message: "invalid token"}
 		}
 		return []byte(secretKey), nil
 	})
@@ -73,7 +71,7 @@ func VerifyRefreshJWT(tokenString string) (*jwt.Token, error) {
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			exception.ErrorHandler(&fiber.Ctx{}, errors.New("error while parsing token"))
+			return nil, exception.ValidationError{Message: "invalid token"}
 		}
 		return []byte(secretKey), nil
 	})

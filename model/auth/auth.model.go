@@ -25,9 +25,9 @@ type TokenInput struct {
 }
 
 type UserTypeResult struct {
-	UserTypeID  primitive.ObjectID `json:"userTypeID" bson:"userTypeID"`
-	Name        *string            `json:"name" bson:"name"`
-	Permissions entity.Permissions `json:"permissions" bson:"permissions"`
+	UserTypeID primitive.ObjectID `json:"userTypeID" bson:"userTypeID"`
+	Name       *string            `json:"name" bson:"name"`
+	Permission entity.Permissions `json:"permission" bson:"permission"`
 }
 
 type UserProfileResult struct {
@@ -35,6 +35,11 @@ type UserProfileResult struct {
 	Username *string            `json:"username" bson:"username"`
 	Password *string            `json:"password" bson:"password"`
 	UserType UserTypeResult     `json:"userType" bson:"userType"`
+}
+
+type FetchUserResult struct {
+	UserData      UserProfileResult  `json:"userData" bson:"userData"`
+	PrePermission entity.Permissions `json:"prePermission" bson:"prePermission"`
 }
 
 type UserResult struct {
