@@ -17,6 +17,7 @@ func SetupRoutes(app *fiber.App) {
 		AllowHeaders: "Origin, Content-Type, Accept",
 		AllowMethods: "GET, POST, PUT, DELETE",
 	}))
-	AuthGroup := app.Group("/api")
-	AuthGroup.Route("/auth", AuthRoute)
+	Group := app.Group("/api")
+	Group.Route("/auth", AuthRoute)
+	Group.Route("/usermanagement", UserManagementRoute)
 }

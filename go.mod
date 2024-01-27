@@ -8,6 +8,8 @@ require (
 	go.mongodb.org/mongo-driver v1.13.1
 )
 
+require github.com/adam-lavrik/go-imath v0.0.0-20210910152346-265a42a96f0b // indirect
+
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
