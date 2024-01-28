@@ -2,10 +2,12 @@ package service
 
 import (
 	"PBD_backend_go/configuration"
+	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/userManagement"
 	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetUserService(input model.GetUserServiceInput) ([]model.GetUserServiceResult, error) {
@@ -55,4 +57,46 @@ func GetUserService(input model.GetUserServiceInput) ([]model.GetUserServiceResu
 		return nil, err
 	}
 	return result, nil
+}
+
+func GetUserByIDService(input model.GetUserByIDInput) (model.GetUserByIDServiceResult, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return model.GetUserByIDServiceResult{}, err
+	}
+	userIDObjectID, err := primitive.ObjectIDFromHex(input.UserID)
+	if err != nil {
+		return model.GetUserByIDServiceResult{}, exception.ValidationError{Message: "invalid userID"}
+	}
+	ref := coll.Database("PBD").Collection("users")
+	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: userIDObjectID}}}}
+	addFieldsStage := bson.D{{Key: "$addFields", Value: bson.D{{Key: "userTypeID", Value: bson.D{{Key: "$toObjectId", Value: "$userTypeID.$id"}}}}}}
+	lookupStage := bson.D{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "userType"},
+		{Key: "localField", Value: "userTypeID"},
+		{Key: "foreignField", Value: "_id"},
+		{Key: "as", Value: "userType"},
+	}}}
+	unwindStage := bson.D{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$userType"}}}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{
+		{Key: "userID", Value: "$_id"},
+		{Key: "username", Value: 1},
+		{Key: "userType", Value: "$userType._id"},
+	}}}
+	pipeline := bson.A{matchStage, addFieldsStage, lookupStage, unwindStage, projectStage}
+	cursor, err := ref.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return model.GetUserByIDServiceResult{}, err
+	}
+	// check is cursor empty
+	var result []model.GetUserByIDServiceResult
+	err = cursor.All(context.Background(), &result)
+	if err != nil {
+		return model.GetUserByIDServiceResult{}, err
+	}
+	// check is result empty
+	if len(result) <= 0 {
+		return model.GetUserByIDServiceResult{}, exception.NotFoundError{Message: "user not found"}
+	}
+	return result[0], nil
 }

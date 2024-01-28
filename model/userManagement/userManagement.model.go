@@ -31,3 +31,13 @@ type GetUserServiceInput struct {
 	Search         string `json:"search" bson:"search"`
 	SearchPipeline bson.A `json:"searchPipeline" bson:"searchPipeline"`
 }
+
+type GetUserByIDServiceResult struct {
+	UserID   primitive.ObjectID `json:"userID" bson:"userID"`
+	Username string             `json:"username" bson:"username"`
+	UserType primitive.ObjectID `json:"userType" bson:"userType"`
+}
+
+type GetUserByIDInput struct {
+	UserID string `json:"userID"`
+}

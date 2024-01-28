@@ -71,7 +71,22 @@ func GetUserController(c *fiber.Ctx) error {
 		Message: "Success",
 		Data:    result,
 	})
+}
 
+func GetUserByIDController(c *fiber.Ctx) error {
+	var body model.GetUserByIDInput
+	if err := c.QueryParser(&body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	result, err := service.GetUserByIDService(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    result,
+	})
 }
 
 func getUserBodyCondition(input model.GetUserControllerInput) model.GetUserControllerInput {

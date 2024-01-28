@@ -9,4 +9,6 @@ import (
 
 func UserManagementRoute(route fiber.Router) {
 	route.Get("/getUser", middleware.Authenication, authcontroller.GetUserController)
+	route.Get("/getUserByID", middleware.Authenication, authcontroller.GetUserByIDController)
+	
 }
