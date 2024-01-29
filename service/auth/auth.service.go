@@ -38,6 +38,11 @@ func LoginService(input model.LoginRequest) (model.UserResult, error) {
 	if err = cursor.All(context.Background(), &result); err != nil {
 		return model.UserResult{}, err
 	}
+	//check result is empty or not
+	if len(result) <= 0 {
+		err := exception.NotFoundError{Message: "user not found"}
+		return model.UserResult{}, err
+	}
 
 	password := result[0].Password
 	is_error := bcrypt.CompareHashAndPassword([]byte(*password), []byte(input.Password))

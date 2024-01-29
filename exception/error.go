@@ -14,6 +14,7 @@ func PanicLogging(err interface{}) {
 }
 
 func ErrorHandler(ctx *fiber.Ctx, err error) error {
+
 	_, validationError := err.(ValidationError)
 	if validationError {
 		data := err.Error()
@@ -23,7 +24,7 @@ func ErrorHandler(ctx *fiber.Ctx, err error) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(commonentity.GeneralResponse{
 			Code:    400,
 			Message: "Bad Request",
-			Data:    messages,
+			Data:    err.Error(),
 		})
 	}
 

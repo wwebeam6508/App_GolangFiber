@@ -89,15 +89,31 @@ func GetUserByIDController(c *fiber.Ctx) error {
 	})
 }
 
+func AddUserController(c *fiber.Ctx) error {
+	var body model.AddUserInput
+	if err := c.BodyParser(&body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	err := service.AddUserService(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusCreated).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusCreated,
+		Message: "Success",
+		Data:    nil,
+	})
+}
+
 func getUserBodyCondition(input model.GetUserControllerInput) model.GetUserControllerInput {
 	var result model.GetUserControllerInput
-	if pageSize := input.PageSize; pageSize <= 0 {
+	if input.PageSize <= 0 {
 		result.PageSize = 10
 	}
-	if sortTitle := input.SortTitle; sortTitle == "" {
+	if input.SortTitle == "" {
 		result.SortTitle = "date"
 	}
-	if sortType := input.SortType; sortType == "" {
+	if input.SortType == "" {
 		result.SortType = "desc"
 	}
 	if input.Search == "" {

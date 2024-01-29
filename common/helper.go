@@ -3,6 +3,7 @@ package common
 import (
 	"math"
 	"math/rand"
+	"os"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -68,4 +69,6 @@ func EncryptPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-// Implement the remaining functions...
+func DenialIfSuperAdmin(userTypeID string) bool {
+	return userTypeID == os.Getenv("SUPER_ADMIN_ID")
+}

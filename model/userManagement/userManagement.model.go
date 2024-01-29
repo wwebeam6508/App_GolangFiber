@@ -39,5 +39,11 @@ type GetUserByIDServiceResult struct {
 }
 
 type GetUserByIDInput struct {
-	UserID string `json:"userID"`
+	UserID string `json:"userID" bson:"userID"`
+}
+
+type AddUserInput struct {
+	Username   string `json:"username" bson:"username"`
+	Password   string `json:"password" bson:"password"`
+	UserTypeID string `json:"userTypeID" bson:"userTypeID"`
 }

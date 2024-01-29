@@ -1,13 +1,17 @@
 package service
 
 import (
+	"PBD_backend_go/common"
 	"PBD_backend_go/configuration"
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/userManagement"
 	"context"
+	"errors"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GetUserService(input model.GetUserServiceInput) ([]model.GetUserServiceResult, error) {
@@ -99,4 +103,46 @@ func GetUserByIDService(input model.GetUserByIDInput) (model.GetUserByIDServiceR
 		return model.GetUserByIDServiceResult{}, exception.NotFoundError{Message: "user not found"}
 	}
 	return result[0], nil
+}
+
+func AddUserService(input model.AddUserInput) error {
+	if common.DenialIfSuperAdmin(input.UserTypeID) {
+		return exception.ValidationError{Message: "cannot add super admin"}
+	}
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return err
+	}
+	userTypeIDObjectID, err := primitive.ObjectIDFromHex(input.UserTypeID)
+	if err != nil {
+		return exception.ValidationError{Message: "invalid userTypeID"}
+	}
+	password, err := encryptPassword(input.Password)
+	if err != nil {
+		return err
+	}
+	ref := coll.Database("PBD").Collection("users")
+	ires, err := ref.InsertOne(context.Background(), bson.D{
+		{Key: "username", Value: input.Username},
+		{Key: "password", Value: password},
+		{Key: "userTypeID", Value: bson.D{{Key: "$ref", Value: "userType"}, {Key: "$id", Value: userTypeIDObjectID}}},
+		{Key: "createdAt", Value: primitive.NewDateTimeFromTime(time.Now())},
+		{Key: "status", Value: 1},
+	})
+	if err != nil {
+		return err
+	}
+	if ires.InsertedID == nil {
+		return errors.New("failed to add user")
+	}
+
+	return nil
+}
+
+func encryptPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", errors.New("failed to encrypt password")
+	}
+	return string(hash), nil
 }
