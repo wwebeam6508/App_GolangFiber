@@ -16,6 +16,11 @@ type GetUserControllerInput struct {
 	SearchFilter string `json:"searchFilter" bson:"searchFilter"`
 }
 
+type SearchPipeline struct {
+	Search         string `json:"search" bson:"search"`
+	SearchPipeline bson.A `json:"searchPipeline" bson:"searchPipeline"`
+}
+
 type GetUserServiceResult struct {
 	UserID   primitive.ObjectID `json:"userID" bson:"userID"`
 	UserType string             `json:"userType" bson:"userType"`

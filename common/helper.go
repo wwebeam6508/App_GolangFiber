@@ -20,7 +20,7 @@ func EmptyOrRows(rows []interface{}) []interface{} {
 	return rows
 }
 
-func PageArray(totalSize int, pageSize int, page int, maxLength int) []interface{} {
+func PageArray(totalSize int32, pageSize int, page int, maxLength int) []interface{} {
 	currentPage := page
 	currentPosition := maxLength / 2
 	totalPage := int(math.Ceil(float64(totalSize) / float64(pageSize)))

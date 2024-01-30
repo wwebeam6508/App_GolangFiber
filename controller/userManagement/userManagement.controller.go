@@ -7,6 +7,7 @@ import (
 	model "PBD_backend_go/model/userManagement"
 	jwtservice "PBD_backend_go/service/auth"
 	service "PBD_backend_go/service/userManagement"
+	"math"
 	"strings"
 	"time"
 
@@ -56,6 +57,10 @@ func GetUserController(c *fiber.Ctx) error {
 			searchPipeline = append(searchPipeline, bson.M{body.SearchFilter: bson.M{"$regex": body.Search, "$options": "i"}})
 		}
 	}
+	searchPipelineGroup := model.SearchPipeline{
+		Search:         body.Search,
+		SearchPipeline: searchPipeline,
+	}
 	// check is searchPipeline empty
 	input := model.GetUserServiceInput{
 		Page:           body.Page,
@@ -65,14 +70,21 @@ func GetUserController(c *fiber.Ctx) error {
 		Search:         body.Search,
 		SearchPipeline: searchPipeline,
 	}
-	result, err := service.GetUserService(input)
+	result, err := service.GetUserService(input, searchPipelineGroup)
+	allUserCount := service.GetAllUserCount(body.Search, searchPipelineGroup)
+	pages := common.PageArray(allUserCount, body.PageSize, body.Page, 5)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "Success",
-		Data:    result,
+		Data: bson.M{
+			"currentPage": body.Page,
+			"pages":       pages,
+			"data":        result,
+			"lastPage":    math.Ceil(float64(allUserCount) / float64(body.PageSize)),
+		},
 	})
 }
 

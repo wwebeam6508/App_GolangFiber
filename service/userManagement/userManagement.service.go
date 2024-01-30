@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GetUserService(input model.GetUserServiceInput) ([]model.GetUserServiceResult, error) {
+func GetUserService(input model.GetUserServiceInput, searchPipeline model.SearchPipeline) ([]model.GetUserServiceResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	if err != nil {
 		return nil, err
@@ -42,6 +42,9 @@ func GetUserService(input model.GetUserServiceInput) ([]model.GetUserServiceResu
 		{Key: "date", Value: "$createdAt"},
 	}}}
 	pipeline := bson.A{matchStage, addFieldsStage, lookupStage, unwindStage, projectStage, skipStage, limitStage}
+	if searchPipeline.Search != "" {
+		pipeline = append(pipeline, searchPipeline.SearchPipeline...)
+	}
 	if input.SortTitle != "" && input.SortType != "" {
 		var sortValue int
 		if input.SortType == "desc" {
@@ -182,7 +185,7 @@ func UpdateUserService(input model.UpdateUserInput) error {
 }
 
 func DeleteUserService(input model.DeleteUserInput) error {
-	
+
 	coll, err := configuration.ConnectToMongoDB()
 	if err != nil {
 		return err
@@ -201,6 +204,30 @@ func StopChangeItself(userID string, selfID string) bool {
 
 func StopChangeSuperAdmin(userTypeID string) bool {
 	return userTypeID == os.Getenv("SUPER_ADMIN_ID")
+}
+
+func GetAllUserCount(search string, searchPipeline model.SearchPipeline) int32 {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return 0
+	}
+	ref := coll.Database("PBD").Collection("users")
+	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
+	groupStage := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: nil}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}}
+	pipeline := bson.A{matchStage, groupStage}
+	if searchPipeline.Search != "" {
+		pipeline = append(pipeline, searchPipeline.SearchPipeline...)
+	}
+	cursor, err := ref.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return 0
+	}
+	var result []bson.M
+	err = cursor.All(context.Background(), &result)
+	if err != nil {
+		return 0
+	}
+	return result[0]["count"].(int32)
 }
 
 func encryptPassword(password string) (string, error) {
