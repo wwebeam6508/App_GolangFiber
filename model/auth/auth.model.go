@@ -28,6 +28,7 @@ type UserTypeResult struct {
 	UserTypeID primitive.ObjectID `json:"userTypeID" bson:"userTypeID"`
 	Name       *string            `json:"name" bson:"name"`
 	Permission entity.Permissions `json:"permission" bson:"permission"`
+	Rank 		 *int32             `json:"rank" bson:"rank"`
 }
 
 type UserProfileResult struct {

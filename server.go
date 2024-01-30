@@ -2,6 +2,7 @@ package main
 
 import (
 	"PBD_backend_go/routes"
+	"fmt"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,14 +18,33 @@ func runEnv() {
 
 func main() {
 
+	// Create a new fiber instance with custom config
 	app := fiber.New()
 
-	// Define your routes here
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
-
 	runEnv()
+
+	// Add error handling middleware
+	app.Use(func(c *fiber.Ctx) error {
+		// Call the next handler
+		err := c.Next()
+		fmt.Println(err)
+		// Check if we got an error
+		if err != nil {
+			// We had an error, do something with it
+			c.Status(fiber.StatusInternalServerError)
+			return c.JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		// Return from middleware
+		return nil
+	})
+	// Add your routes
+	app.Get("/", func(c *fiber.Ctx) error {
+		// Simulate an error
+		return fiber.ErrBadRequest
+	})
 
 	routes.SetupRoutes(app)
 

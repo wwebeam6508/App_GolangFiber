@@ -26,17 +26,17 @@ func UserManagementRoute(route fiber.Router) {
 			GroupName: "User",
 			Name:      "CanEdit",
 		})
-	}, authcontroller.AddUserController)
+	}, middleware.RankCheck, authcontroller.AddUserController)
 	route.Post("/updateUser", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "User",
 			Name:      "CanEdit",
 		})
-	}, authcontroller.UpdateUserController)
+	}, middleware.RankCheck, authcontroller.UpdateUserController)
 	route.Delete("/deleteUser", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "User",
 			Name:      "CanRemove",
 		})
-	}, authcontroller.DeleteUserController)
+	}, middleware.RankCheck, authcontroller.DeleteUserController)
 }

@@ -27,7 +27,7 @@ func LoginService(input model.LoginRequest) (model.UserResult, error) {
 	addFieldsStage := bson.D{{Key: "$addFields", Value: bson.D{{Key: "userTypeID", Value: bson.D{{Key: "$toObjectId", Value: "$userTypeID.$id"}}}}}}
 	lookupStage := bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "userType"}, {Key: "localField", Value: "userTypeID"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "userType"}}}}
 	unwindStage := bson.D{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$userType"}}}}
-	projectStage := bson.D{{Key: "$project", Value: bson.D{{Key: "_id", Value: 0}, {Key: "userID", Value: "$_id"}, {Key: "username", Value: 1}, {Key: "password", Value: 1}, {Key: "userType", Value: bson.D{{Key: "userTypeID", Value: "$userType._id"}, {Key: "name", Value: "$userType.name"}, {Key: "permission", Value: "$userType.permission"}}}}}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{{Key: "_id", Value: 0}, {Key: "userID", Value: "$_id"}, {Key: "username", Value: 1}, {Key: "password", Value: 1}, {Key: "userType", Value: bson.D{{Key: "userTypeID", Value: "$userType._id"}, {Key: "name", Value: "$userType.name"}, {Key: "rank", Value: "$userType.rank"}, {Key: "permission", Value: "$userType.permission"}}}}}}
 	collection := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users")
 	cursor, err := collection.Aggregate(context.Background(), mongo.Pipeline{matchStage, addFieldsStage, lookupStage, unwindStage, projectStage})
 	if err != nil {

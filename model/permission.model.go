@@ -17,3 +17,19 @@ type PermissionInput struct {
 	GroupName string
 	Name      string
 }
+
+type GetUserTypeByUserIDInput struct {
+	UserID string `json:"userID" bson:"userID"`
+}
+
+type GetUserTypeByUserIDResult struct {
+	Rank int32 `json:"rank" bson:"rank"`
+}
+
+type GetUserRankByUserTypeIDInput struct {
+	UserTypeID string `json:"userTypeID" bson:"userTypeID"`
+}
+
+type GetUserRankByUserTypeIDResult struct {
+	Rank int32 `json:"rank" bson:"rank"`
+}

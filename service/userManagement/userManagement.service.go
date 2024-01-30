@@ -6,7 +6,6 @@ import (
 	model "PBD_backend_go/model/userManagement"
 	"context"
 	"errors"
-	"os"
 	"reflect"
 	"time"
 
@@ -198,14 +197,6 @@ func DeleteUserService(input model.DeleteUserInput) error {
 	return nil
 }
 
-func StopChangeItself(userID string, selfID string) bool {
-	return userID == selfID
-}
-
-func StopChangeSuperAdmin(userTypeID string) bool {
-	return userTypeID == os.Getenv("SUPER_ADMIN_ID")
-}
-
 func GetAllUserCount(search string, searchPipeline model.SearchPipeline) int32 {
 	coll, err := configuration.ConnectToMongoDB()
 	if err != nil {
@@ -228,6 +219,31 @@ func GetAllUserCount(search string, searchPipeline model.SearchPipeline) int32 {
 		return 0
 	}
 	return result[0]["count"].(int32)
+}
+
+func GetUserTypeService() ([]model.GetUserTypeServiceResult, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return nil, err
+	}
+	ref := coll.Database("PBD").Collection("userType")
+	//aggregate
+	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{
+		{Key: "id", Value: "$_id"},
+		{Key: "name", Value: 1},
+	}}}
+	pipeline := bson.A{matchStage, projectStage}
+	cursor, err := ref.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return nil, err
+	}
+	var result []model.GetUserTypeServiceResult
+	err = cursor.All(context.Background(), &result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func encryptPassword(password string) (string, error) {
