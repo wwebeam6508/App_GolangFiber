@@ -7,6 +7,8 @@ import (
 	model "PBD_backend_go/model/userManagement"
 	"context"
 	"errors"
+	"os"
+	"reflect"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -73,7 +75,7 @@ func GetUserByIDService(input model.GetUserByIDInput) (model.GetUserByIDServiceR
 		return model.GetUserByIDServiceResult{}, exception.ValidationError{Message: "invalid userID"}
 	}
 	ref := coll.Database("PBD").Collection("users")
-	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: userIDObjectID}}}}
+	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	addFieldsStage := bson.D{{Key: "$addFields", Value: bson.D{{Key: "userTypeID", Value: bson.D{{Key: "$toObjectId", Value: "$userTypeID.$id"}}}}}}
 	lookupStage := bson.D{{Key: "$lookup", Value: bson.D{
 		{Key: "from", Value: "userType"},
@@ -85,7 +87,7 @@ func GetUserByIDService(input model.GetUserByIDInput) (model.GetUserByIDServiceR
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
 		{Key: "userID", Value: "$_id"},
 		{Key: "username", Value: 1},
-		{Key: "userType", Value: "$userType._id"},
+		{Key: "userTypeID", Value: "$userType._id"},
 	}}}
 	pipeline := bson.A{matchStage, addFieldsStage, lookupStage, unwindStage, projectStage}
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
@@ -137,6 +139,58 @@ func AddUserService(input model.AddUserInput) error {
 	}
 
 	return nil
+}
+
+func UpdateUserService(input model.UpdateUserInput) error {
+
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return err
+	}
+	//get only input that is not empty dynamic
+	updateData := bson.D{}
+	reflectInput := reflect.ValueOf(input)
+	for i := 0; i < reflectInput.NumField(); i++ {
+		// if paasword or selfID or userID or userTypeID then continue
+		if reflectInput.Type().Field(i).Name == "Password" || reflectInput.Type().Field(i).Name == "SelfID" || reflectInput.Type().Field(i).Name == "UserID" || reflectInput.Type().Field(i).Name == "UserTypeID" {
+			continue
+		}
+
+		if reflectInput.Field(i).Interface() != "" {
+			updateData = append(updateData, bson.E{Key: reflectInput.Type().Field(i).Tag.Get("bson"), Value: reflectInput.Field(i).Interface()})
+		}
+	}
+	// encode password
+	if input.Password != "" {
+		password, err := encryptPassword(input.Password)
+		if err != nil {
+			return err
+		}
+		updateData = append(updateData, bson.E{Key: "password", Value: password})
+	}
+	//userTypeID go for ref
+	if input.UserTypeID != "" {
+		userTypeIDObjectID, err := primitive.ObjectIDFromHex(input.UserTypeID)
+		if err != nil {
+			return exception.ValidationError{Message: "invalid userTypeID"}
+		}
+		updateData = append(updateData, bson.E{Key: "userTypeID", Value: bson.D{{Key: "$ref", Value: "userType"}, {Key: "$id", Value: userTypeIDObjectID}}})
+	}
+
+	userIDObjectID, err := primitive.ObjectIDFromHex(input.UserID)
+	if err != nil {
+		return exception.ValidationError{Message: "invalid userID"}
+	}
+	coll.Database("PBD").Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}}, bson.D{{Key: "$set", Value: updateData}})
+	return nil
+}
+
+func StopChangeItself(userID string, selfID string) bool {
+	return userID == selfID
+}
+
+func StopChangeSuperAdmin(userTypeID string) bool {
+	return userTypeID == os.Getenv("SUPER_ADMIN_ID")
 }
 
 func encryptPassword(password string) (string, error) {

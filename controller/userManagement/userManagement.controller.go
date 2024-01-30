@@ -4,10 +4,12 @@ import (
 	"PBD_backend_go/commonentity"
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/userManagement"
+	jwtservice "PBD_backend_go/service/auth"
 	service "PBD_backend_go/service/userManagement"
 	"strings"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -100,6 +102,57 @@ func AddUserController(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusCreated).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusCreated,
+		Message: "Success",
+		Data:    nil,
+	})
+}
+
+func UpdateUserController(c *fiber.Ctx) error {
+	var body model.UpdateUserInput
+	if err := c.BodyParser(&body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	if body.UserID == "" || body.SelfID == "" {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: "invalid userID or selfID"})
+	}
+	//userID from authorization
+	selfIDSplit := strings.Split(c.Get("Authorization"), " ")
+	if len(selfIDSplit) != 2 {
+		return exception.ErrorHandler(c, exception.UnauthorizedError{Message: "permission denied"})
+	}
+	body.SelfID = selfIDSplit[1]
+	//get userID from claim
+	claims, err := jwtservice.VerifyJWT(body.SelfID)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	body.SelfID = claims.Claims.(jwt.MapClaims)["data"].(map[string]interface{})["userID"].(string)
+	//check if userID or selfID is empty
+
+	if service.StopChangeItself(body.UserID, body.SelfID) {
+		return exception.ErrorHandler(c, exception.UnauthorizedError{Message: "cannot update itself"})
+	}
+	//get userTypeID from input.SelfID
+	oldData, err := service.GetUserByIDService(model.GetUserByIDInput{UserID: body.UserID})
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	//check if userTypeID is super admin
+	if service.StopChangeSuperAdmin(oldData.UserTypeID.Hex()) {
+		return exception.ErrorHandler(c, exception.UnauthorizedError{Message: "cannot update super admin"})
+	}
+	if service.StopChangeSuperAdmin(body.UserTypeID) {
+		return exception.ErrorHandler(c, exception.UnauthorizedError{Message: "cannot update super admin"})
+	}
+
+	//check if userTypeID is super admin
+
+	err = service.UpdateUserService(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
 		Message: "Success",
 		Data:    nil,
 	})

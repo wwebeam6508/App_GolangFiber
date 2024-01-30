@@ -33,9 +33,9 @@ type GetUserServiceInput struct {
 }
 
 type GetUserByIDServiceResult struct {
-	UserID   primitive.ObjectID `json:"userID" bson:"userID"`
-	Username string             `json:"username" bson:"username"`
-	UserType primitive.ObjectID `json:"userType" bson:"userType"`
+	UserID     primitive.ObjectID `json:"userID" bson:"userID"`
+	Username   string             `json:"username" bson:"username"`
+	UserTypeID primitive.ObjectID `json:"userTypeID" bson:"userTypeID"`
 }
 
 type GetUserByIDInput struct {
@@ -46,4 +46,12 @@ type AddUserInput struct {
 	Username   string `json:"username" bson:"username"`
 	Password   string `json:"password" bson:"password"`
 	UserTypeID string `json:"userTypeID" bson:"userTypeID"`
+}
+
+type UpdateUserInput struct {
+	UserID     string `json:"userID" bson:"userID"`
+	Username   string `json:"username" bson:"username"`
+	UserTypeID string `json:"userTypeID" bson:"userTypeID"`
+	Password   string `json:"password" bson:"password"`
+	SelfID     string `json:"selfID" bson:"selfID"`
 }
