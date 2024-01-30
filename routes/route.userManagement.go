@@ -33,4 +33,10 @@ func UserManagementRoute(route fiber.Router) {
 			Name:      "CanEdit",
 		})
 	}, authcontroller.UpdateUserController)
+	route.Delete("/deleteUser", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "User",
+			Name:      "CanRemove",
+		})
+	}, authcontroller.DeleteUserController)
 }

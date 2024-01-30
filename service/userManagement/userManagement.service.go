@@ -1,7 +1,6 @@
 package service
 
 import (
-	"PBD_backend_go/common"
 	"PBD_backend_go/configuration"
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/userManagement"
@@ -108,9 +107,6 @@ func GetUserByIDService(input model.GetUserByIDInput) (model.GetUserByIDServiceR
 }
 
 func AddUserService(input model.AddUserInput) error {
-	if common.DenialIfSuperAdmin(input.UserTypeID) {
-		return exception.ValidationError{Message: "cannot add super admin"}
-	}
 	coll, err := configuration.ConnectToMongoDB()
 	if err != nil {
 		return err
@@ -182,6 +178,20 @@ func UpdateUserService(input model.UpdateUserInput) error {
 		return exception.ValidationError{Message: "invalid userID"}
 	}
 	coll.Database("PBD").Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}}, bson.D{{Key: "$set", Value: updateData}})
+	return nil
+}
+
+func DeleteUserService(input model.DeleteUserInput) error {
+	
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return err
+	}
+	userIDObjectID, err := primitive.ObjectIDFromHex(input.UserID)
+	if err != nil {
+		return exception.ValidationError{Message: "invalid userID"}
+	}
+	coll.Database("PBD").Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
 	return nil
 }
 

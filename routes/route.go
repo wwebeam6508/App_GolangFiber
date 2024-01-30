@@ -10,9 +10,9 @@ import (
 )
 
 func SetupRoutes(app *fiber.App) {
-	f := fiber.New()
-	f.Use(logger.New())
-	f.Use(cors.New(cors.Config{
+	app.Use(cors.New())
+	app.Use(logger.New())
+	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowHeaders: "Origin, Content-Type, Accept",
 		AllowMethods: "GET, POST, PUT, DELETE",

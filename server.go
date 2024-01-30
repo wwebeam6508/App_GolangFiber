@@ -28,5 +28,5 @@ func main() {
 
 	routes.SetupRoutes(app)
 
-	app.Listen(`127.0.0.1:` + os.Getenv(`GO_PORT`))
+	app.Listen(`localhost:` + os.Getenv(`GO_PORT`))
 }

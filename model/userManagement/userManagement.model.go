@@ -53,5 +53,10 @@ type UpdateUserInput struct {
 	Username   string `json:"username" bson:"username"`
 	UserTypeID string `json:"userTypeID" bson:"userTypeID"`
 	Password   string `json:"password" bson:"password"`
-	SelfID     string `json:"selfID" bson:"selfID"`
+	SelfID     string `json:"itSelftID" bson:"itSelftID"`
+}
+
+type DeleteUserInput struct {
+	UserID string `json:"userID" bson:"userID"`
+	SelfID string `json:"itSelftID" bson:"itSelftID"`
 }
