@@ -197,7 +197,7 @@ func DeleteUserService(input model.DeleteUserInput) error {
 	return nil
 }
 
-func GetAllUserCount(search string, searchPipeline model.SearchPipeline) int32 {
+func GetAllUserCount(searchPipeline model.SearchPipeline) int32 {
 	coll, err := configuration.ConnectToMongoDB()
 	if err != nil {
 		return 0
