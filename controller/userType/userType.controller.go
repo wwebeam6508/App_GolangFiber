@@ -86,7 +86,6 @@ func GetUserTypeController(c *fiber.Ctx) error {
 			"lastPage":    math.Ceil(float64(allUserTypeCount) / float64(input.PageSize)),
 		},
 	})
-
 }
 
 func filterRankGetUserTypeController(c *fiber.Ctx, input model.GetUserTypeInput, result []model.GetUserTypeResult) ([]model.GetUserTypeResult, error) {
