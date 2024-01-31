@@ -1,0 +1,28 @@
+package model
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type GetUserTypeInput struct {
+	Page         int    `json:"page" bson:"page"`
+	PageSize     int    `json:"pageSize" bson:"pageSize"`
+	SortTitle    string `json:"sortTitle" bson:"sortTitle"`
+	SortType     string `json:"sortType" bson:"sortType"`
+	Search       string `json:"search" bson:"search"`
+	SearchFilter string `json:"searchFilter" bson:"searchFilter"`
+}
+
+type GetUserTypeResult struct {
+	UserTypeID primitive.ObjectID `json:"userTypeID" bson:"userTypeID"`
+	Name       string             `json:"name" bson:"name"`
+	Date       time.Time          `json:"date" bson:"date"`
+	Rank       int32              `json:"rank" bson:"rank"`
+}
+type SearchPipeline struct {
+	Search         string `json:"search" bson:"search"`
+	SearchPipeline bson.A `json:"searchPipeline" bson:"searchPipeline"`
+}

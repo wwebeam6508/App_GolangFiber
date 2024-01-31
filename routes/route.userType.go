@@ -1,0 +1,18 @@
+package routes
+
+import (
+	controller "PBD_backend_go/controller/userType"
+	"PBD_backend_go/middleware"
+	"PBD_backend_go/model"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+func UserTypeRoute(route fiber.Router) {
+	route.Get("/getUserType", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "UserType",
+			Name:      "CanView",
+		})
+	}, controller.GetUserTypeController)
+}
