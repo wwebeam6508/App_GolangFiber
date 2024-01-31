@@ -3,7 +3,7 @@ package service
 import (
 	"PBD_backend_go/configuration"
 	"PBD_backend_go/exception"
-	model "PBD_backend_go/model/userManagement"
+	model "PBD_backend_go/model/user"
 	"context"
 	"errors"
 	"reflect"

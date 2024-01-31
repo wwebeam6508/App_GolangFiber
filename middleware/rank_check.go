@@ -48,7 +48,6 @@ func RankCheck(c *fiber.Ctx) error {
 }
 
 func againistOther(userData map[string]interface{}, userID string) error {
-
 	selfUserID := userData["userID"].(string)
 	//check if userID from body is equal to userID from claim
 	if userID == selfUserID {

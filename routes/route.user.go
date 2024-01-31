@@ -1,14 +1,14 @@
 package routes
 
 import (
-	authcontroller "PBD_backend_go/controller/userManagement"
+	authcontroller "PBD_backend_go/controller/user"
 	"PBD_backend_go/middleware"
 	"PBD_backend_go/model"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func UserManagementRoute(route fiber.Router) {
+func UserRoute(route fiber.Router) {
 	route.Get("/getUser", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "User",
