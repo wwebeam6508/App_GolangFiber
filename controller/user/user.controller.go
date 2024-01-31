@@ -72,7 +72,7 @@ func GetUserController(c *fiber.Ctx) error {
 		SearchPipeline: searchPipeline,
 	}
 	result, err := service.GetUserService(input, searchPipelineGroup)
-	allUserCount := service.GetAllUserCount(body.Search, searchPipelineGroup)
+	allUserCount := service.GetAllUserCount(searchPipelineGroup)
 	pages := common.PageArray(allUserCount, body.PageSize, body.Page, 5)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
@@ -167,7 +167,7 @@ func GetUserTypeNameController(c *fiber.Ctx) error {
 	token := c.Get("Authorization")
 	splitToken := strings.Split(token, " ")
 	if len(splitToken) < 2 {
-		return exception.ValidationError{Message: "invalid token"}
+		return exception.ErrorHandler(c, exception.ValidationError{Message: "invalid token"})
 	}
 	claims, err := authservice.VerifyJWT(splitToken[1])
 	if err != nil {
