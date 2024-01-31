@@ -39,4 +39,10 @@ func UserManagementRoute(route fiber.Router) {
 			Name:      "CanRemove",
 		})
 	}, middleware.RankCheck, authcontroller.DeleteUserController)
+	route.Get("/getUserTypeName", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "UserType",
+			Name:      "CanEdit",
+		})
+	}, authcontroller.GetUserTypeNameController)
 }

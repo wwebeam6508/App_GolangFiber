@@ -232,6 +232,7 @@ func GetUserTypeService() ([]model.GetUserTypeServiceResult, error) {
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
 		{Key: "id", Value: "$_id"},
 		{Key: "name", Value: 1},
+		{Key: "rank", Value: 1},
 	}}}
 	pipeline := bson.A{matchStage, projectStage}
 	cursor, err := ref.Aggregate(context.Background(), pipeline)

@@ -5,11 +5,14 @@ import (
 	"PBD_backend_go/commonentity"
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/userManagement"
+	authservice "PBD_backend_go/service/auth"
 	service "PBD_backend_go/service/userManagement"
+	"fmt"
 	"math"
 	"strings"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -155,19 +158,49 @@ func DeleteUserController(c *fiber.Ctx) error {
 	})
 }
 
-func GetUserTypeController(c *fiber.Ctx) error {
+func GetUserTypeNameController(c *fiber.Ctx) error {
 	result, err := service.GetUserTypeService()
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
+	//get rank from token
+	token := c.Get("Authorization")
+	splitToken := strings.Split(token, " ")
+	if len(splitToken) < 2 {
+		return exception.ValidationError{Message: "invalid token"}
+	}
+	claims, err := authservice.VerifyJWT(splitToken[1])
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	userData := claims.Claims.(jwt.MapClaims)["data"].(map[string]interface{})
+	//check if userType is super admin
+	rank := userData["userType"].(map[string]interface{})["rank"].(float64)
+	rankInt32 := int32(rank)
+	if rankInt32 == 0 {
+		return exception.ErrorHandler(c, exception.UnauthorizedError{Message: "your rank has been disabled"})
+	}
+	//check rank in result show only rank lower than user rank
+	var resultFilter []model.GetUserTypeNameResult
+	for _, v := range result {
+		if v.Rank > rankInt32 {
+			fmt.Println(v.Rank, rankInt32)
+			resultFilter = append(resultFilter, model.GetUserTypeNameResult{
+				ID:   v.ID,
+				Name: v.Name,
+			})
+		}
+	}
+
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "Success",
-		Data:    result,
+		Data:    resultFilter,
 	})
 }
 
 func getUserBodyCondition(input model.GetUserControllerInput) model.GetUserControllerInput {
+
 	var result model.GetUserControllerInput
 	if input.PageSize <= 0 {
 		result.PageSize = 10

@@ -67,6 +67,12 @@ type DeleteUserInput struct {
 }
 
 type GetUserTypeServiceResult struct {
-	Id   primitive.ObjectID `json:"id" bson:"id"`
+	ID   primitive.ObjectID `json:"id" bson:"id"`
+	Name string             `json:"name" bson:"name"`
+	Rank int32              `json:"rank" bson:"rank"`
+}
+
+type GetUserTypeNameResult struct {
+	ID   primitive.ObjectID `json:"id" bson:"id"`
 	Name string             `json:"name" bson:"name"`
 }

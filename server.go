@@ -2,7 +2,6 @@ package main
 
 import (
 	"PBD_backend_go/routes"
-	"fmt"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -27,7 +26,6 @@ func main() {
 	app.Use(func(c *fiber.Ctx) error {
 		// Call the next handler
 		err := c.Next()
-		fmt.Println(err)
 		// Check if we got an error
 		if err != nil {
 			// We had an error, do something with it
