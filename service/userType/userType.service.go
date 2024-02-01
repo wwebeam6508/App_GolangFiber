@@ -2,10 +2,12 @@ package service
 
 import (
 	"PBD_backend_go/configuration"
+	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/userType"
 	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetUserTypeService(input model.GetUserTypeInput, searchPipeline model.SearchPipeline) ([]model.GetUserTypeResult, error) {
@@ -51,6 +53,43 @@ func GetUserTypeService(input model.GetUserTypeInput, searchPipeline model.Searc
 		return nil, err
 	}
 	return result, nil
+}
+
+func GetUserTypeByIDService(input model.GetUserTypeByIDInput) (model.GetUserTypeResult, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return model.GetUserTypeResult{}, err
+	}
+
+	ref := coll.Database("PBD").Collection("userType")
+	//aggregate
+	userTypeIDObjectID, err := primitive.ObjectIDFromHex(input.UserTypeID)
+	if err != nil {
+		return model.GetUserTypeResult{}, exception.ValidationError{Message: "invalid userTypeID"}
+	}
+	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: userTypeIDObjectID}}}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{
+		{Key: "userTypeID", Value: "$_id"},
+		{Key: "name", Value: 1},
+		{Key: "rank", Value: 1},
+		{Key: "permission", Value: 1},
+	}}}
+	pipeline := bson.A{matchState, projectStage}
+	cursor, err := ref.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return model.GetUserTypeResult{}, err
+	}
+	var result []model.GetUserTypeResult
+	err = cursor.All(context.Background(), &result)
+	if err != nil {
+		return model.GetUserTypeResult{}, err
+	}
+	//check result empty
+	if len(result) == 0 {
+		return model.GetUserTypeResult{}, exception.NotFoundError{Message: "userType not found"}
+	}
+
+	return result[0], nil
 
 }
 

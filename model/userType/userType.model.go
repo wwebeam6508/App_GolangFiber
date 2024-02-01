@@ -1,6 +1,7 @@
 package model
 
 import (
+	"PBD_backend_go/entity"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,6 +23,18 @@ type GetUserTypeResult struct {
 	Date       time.Time          `json:"date" bson:"date"`
 	Rank       int32              `json:"rank" bson:"rank"`
 }
+
+type GetUserTypeByIDInput struct {
+	UserTypeID string `json:"userTypeID" bson:"userTypeID"`
+}
+
+type GetUserTypeByIDResult struct {
+	UserTypeID primitive.ObjectID `json:"userTypeID" bson:"userTypeID"`
+	Name       string             `json:"name" bson:"name"`
+	Permission entity.Permissions `json:"permission" bson:"permission"`
+	Rank       int32              `json:"rank" bson:"rank"`
+}
+
 type SearchPipeline struct {
 	Search         string `json:"search" bson:"search"`
 	SearchPipeline bson.A `json:"searchPipeline" bson:"searchPipeline"`

@@ -88,6 +88,24 @@ func GetUserTypeController(c *fiber.Ctx) error {
 	})
 }
 
+func GetUserTypeByIDController(c *fiber.Ctx) error {
+	//get id
+	var query model.GetUserTypeByIDInput
+	if err := c.QueryParser(&query); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	//get userType
+	result, err := service.GetUserTypeByIDService(query)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    result,
+	})
+}
+
 func filterRankGetUserTypeController(c *fiber.Ctx, input model.GetUserTypeInput, result []model.GetUserTypeResult) ([]model.GetUserTypeResult, error) {
 	//get rank from token
 	token := c.Get("Authorization")

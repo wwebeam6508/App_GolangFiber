@@ -19,7 +19,10 @@ func RankCheck(c *fiber.Ctx) error {
 	}
 	err := c.BodyParser(&body)
 	if err != nil {
-		return exception.ErrorHandler(c, err)
+		err := c.QueryParser(&body)
+		if err != nil {
+			return exception.ErrorHandler(c, err)
+		}
 	}
 	token := c.Get("Authorization")
 	splitToken := strings.Split(token, " ")
@@ -62,8 +65,7 @@ func againistOther(userData map[string]interface{}, userID string) error {
 	if err != nil {
 		return err
 	}
-	//check if userTypeID is super admin
-	if selfRank.Rank <= rank.Rank {
+	if selfRank.Rank >= rank.Rank {
 		return exception.UnauthorizedError{Message: "cannot change rank higher than or equal to your rank"}
 	}
 
@@ -72,6 +74,7 @@ func againistOther(userData map[string]interface{}, userID string) error {
 
 func againistOtherType(userData map[string]interface{}, userTypeID string) error {
 	selfUserTypeID := userData["userType"].(map[string]interface{})["userTypeID"].(string)
+	selfUserID := userData["userID"].(string)
 	//get rank from userTypeID
 	if userTypeID == selfUserTypeID {
 		return exception.ValidationError{Message: "cannot change your own data"}
@@ -81,13 +84,12 @@ func againistOtherType(userData map[string]interface{}, userTypeID string) error
 	if err != nil {
 		return err
 	}
-	selfRank, err := service.GetUserRankByUserTypeIDService(model.GetUserRankByUserTypeIDInput{UserTypeID: selfUserTypeID})
+	selfRank, err := service.GetUserRankByUserIDService(model.GetUserTypeByUserIDInput{UserID: selfUserID})
 	if err != nil {
 		return err
 	}
-	//check if userTypeID is super admin
-	if selfRank.Rank <= rank.Rank {
-		return exception.UnauthorizedError{Message: "cannot change rank higher than or equal to your rank"}
+	if selfRank.Rank >= rank.Rank {
+		return exception.UnauthorizedError{Message: "cannot access or change data rank higher than or equal to your rank"}
 	}
 
 	return nil
