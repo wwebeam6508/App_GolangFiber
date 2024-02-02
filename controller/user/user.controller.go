@@ -7,7 +7,6 @@ import (
 	model "PBD_backend_go/model/user"
 	authservice "PBD_backend_go/service/auth"
 	service "PBD_backend_go/service/user"
-	"fmt"
 	"math"
 	"strings"
 	"time"
@@ -71,9 +70,23 @@ func GetUserController(c *fiber.Ctx) error {
 		Search:         body.Search,
 		SearchPipeline: searchPipeline,
 	}
-	result, err := service.GetUserService(input, searchPipelineGroup)
-	allUserCount := service.GetAllUserCount(searchPipelineGroup)
-	pages := common.PageArray(allUserCount, body.PageSize, body.Page, 5)
+	resultChan := make(chan []model.GetUserServiceResult)
+	errChan := make(chan error)
+	allUserCountChan := make(chan int32)
+	go func() {
+		result, err := service.GetUserService(input, searchPipelineGroup)
+		resultChan <- result
+		errChan <- err
+	}()
+	go func() {
+		allUserCount := service.GetAllUserCount(searchPipelineGroup)
+		allUserCountChan <- allUserCount
+	}()
+	result := <-resultChan
+	err := <-errChan
+	allUserCount := <-allUserCountChan
+
+	pages := common.PageArray(allUserCount, input.PageSize, input.Page, 5)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
@@ -164,7 +177,16 @@ func DeleteUserController(c *fiber.Ctx) error {
 }
 
 func GetUserTypeNameController(c *fiber.Ctx) error {
-	result, err := service.GetUserTypeService()
+	resultChan := make(chan []model.GetUserTypeServiceResult)
+	errChan := make(chan error)
+	go func() {
+		result, err := service.GetUserTypeService()
+		resultChan <- result
+		errChan <- err
+	}()
+	result := <-resultChan
+	err := <-errChan
+
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
@@ -189,7 +211,6 @@ func GetUserTypeNameController(c *fiber.Ctx) error {
 	var resultFilter []model.GetUserTypeNameResult
 	for _, v := range result {
 		if v.Rank > rankInt32 {
-			fmt.Println(v.Rank, rankInt32)
 			resultFilter = append(resultFilter, model.GetUserTypeNameResult{
 				ID:   v.ID,
 				Name: v.Name,
