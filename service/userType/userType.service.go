@@ -6,6 +6,7 @@ import (
 	model "PBD_backend_go/model/userType"
 	"context"
 	"errors"
+	"reflect"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -115,6 +116,63 @@ func AddUserTypeService(input model.AddUserTypeInput) (primitive.ObjectID, error
 		return primitive.NilObjectID, errors.New("failed to add userType")
 	}
 	return insertResult.InsertedID.(primitive.ObjectID), nil
+}
+
+func UpdateUserTypeService(input model.UpdateUserTypeInput, id model.UpdateUserTypeID) error {
+	if id.UserTypeID == "" {
+		return exception.ValidationError{Message: "userTypeID is empty"}
+	}
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return err
+	}
+	ref := coll.Database("PBD").Collection("userType")
+	//update
+	userTypeIDObjectID, err := primitive.ObjectIDFromHex(id.UserTypeID)
+	if err != nil {
+		return exception.ValidationError{Message: "invalid userTypeID"}
+	}
+	// check each field that not empty of input
+	updateField := bson.D{}
+	//dynamic check by for loop
+	refValue := reflect.ValueOf(input)
+	for i := 0; i < refValue.NumField(); i++ {
+		if refValue.Field(i).Interface() != "" {
+			updateField = append(updateField, bson.E{Key: refValue.Type().Field(i).Tag.Get("json"), Value: refValue.Field(i).Interface()})
+		}
+	}
+	updateResult, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userTypeIDObjectID}}, bson.D{{Key: "$set", Value: updateField}})
+	if err != nil {
+		return err
+	}
+	if updateResult.MatchedCount == 0 {
+		return exception.NotFoundError{Message: "userType not found"}
+	}
+	return nil
+}
+
+func DeleteUserTypeService(id model.DeleteUserTypeID) error {
+	if id.UserTypeID == "" {
+		return exception.ValidationError{Message: "userTypeID is empty"}
+	}
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return err
+	}
+	ref := coll.Database("PBD").Collection("userType")
+	//delete
+	userTypeIDObjectID, err := primitive.ObjectIDFromHex(id.UserTypeID)
+	if err != nil {
+		return exception.ValidationError{Message: "invalid userTypeID"}
+	}
+	deleteResult, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userTypeIDObjectID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
+	if err != nil {
+		return err
+	}
+	if deleteResult.MatchedCount == 0 {
+		return exception.NotFoundError{Message: "userType not found"}
+	}
+	return nil
 
 }
 

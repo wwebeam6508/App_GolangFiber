@@ -108,18 +108,18 @@ func GetUserByIDService(input model.GetUserByIDInput) (model.GetUserByIDServiceR
 	return result[0], nil
 }
 
-func AddUserService(input model.AddUserInput) error {
+func AddUserService(input model.AddUserInput) (primitive.ObjectID, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	if err != nil {
-		return err
+		return primitive.ObjectID{}, err
 	}
 	userTypeIDObjectID, err := primitive.ObjectIDFromHex(input.UserTypeID)
 	if err != nil {
-		return exception.ValidationError{Message: "invalid userTypeID"}
+		return primitive.ObjectID{}, exception.ValidationError{Message: "invalid userTypeID"}
 	}
 	password, err := encryptPassword(input.Password)
 	if err != nil {
-		return err
+		return primitive.ObjectID{}, err
 	}
 	ref := coll.Database("PBD").Collection("users")
 	ires, err := ref.InsertOne(context.Background(), bson.D{
@@ -130,16 +130,16 @@ func AddUserService(input model.AddUserInput) error {
 		{Key: "status", Value: 1},
 	})
 	if err != nil {
-		return err
+		return primitive.ObjectID{}, err
 	}
 	if ires.InsertedID == nil {
-		return errors.New("failed to add user")
+		return primitive.ObjectID{}, errors.New("failed to add user")
 	}
 
-	return nil
+	return ires.InsertedID.(primitive.ObjectID), nil
 }
 
-func UpdateUserService(input model.UpdateUserInput) error {
+func UpdateUserService(input model.UpdateUserInput, id model.UpdateUserID) error {
 
 	coll, err := configuration.ConnectToMongoDB()
 	if err != nil {
@@ -150,7 +150,7 @@ func UpdateUserService(input model.UpdateUserInput) error {
 	reflectInput := reflect.ValueOf(input)
 	for i := 0; i < reflectInput.NumField(); i++ {
 		// if paasword or selfID or userID or userTypeID then continue
-		if reflectInput.Type().Field(i).Name == "Password" || reflectInput.Type().Field(i).Name == "SelfID" || reflectInput.Type().Field(i).Name == "UserID" || reflectInput.Type().Field(i).Name == "UserTypeID" {
+		if reflectInput.Type().Field(i).Name == "Password" || reflectInput.Type().Field(i).Name == "SelfID" || reflectInput.Type().Field(i).Name == "UserTypeID" {
 			continue
 		}
 
@@ -175,7 +175,7 @@ func UpdateUserService(input model.UpdateUserInput) error {
 		updateData = append(updateData, bson.E{Key: "userTypeID", Value: bson.D{{Key: "$ref", Value: "userType"}, {Key: "$id", Value: userTypeIDObjectID}}})
 	}
 
-	userIDObjectID, err := primitive.ObjectIDFromHex(input.UserID)
+	userIDObjectID, err := primitive.ObjectIDFromHex(id.UserID)
 	if err != nil {
 		return exception.ValidationError{Message: "invalid userID"}
 	}

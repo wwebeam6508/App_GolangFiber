@@ -124,6 +124,45 @@ func AddUserTypeController(c *fiber.Ctx) error {
 	})
 }
 
+func UpdateUserTypeController(c *fiber.Ctx) error {
+	//get id
+	var query model.UpdateUserTypeID
+	if err := c.QueryParser(&query); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	//get body
+	var body model.UpdateUserTypeInput
+	if err := c.BodyParser(&body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	//update userType
+	err := service.UpdateUserTypeService(body, query)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+	})
+}
+
+func DeleteUserTypeController(c *fiber.Ctx) error {
+	//get body
+	var body model.DeleteUserTypeID
+	if err := c.BodyParser(&body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	//delete userType
+	err := service.DeleteUserTypeService(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+	})
+}
+
 func filterRankGetUserTypeController(c *fiber.Ctx, input model.GetUserTypeInput, result []model.GetUserTypeResult) ([]model.GetUserTypeResult, error) {
 	//get rank from token
 	token := c.Get("Authorization")

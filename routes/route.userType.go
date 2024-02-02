@@ -27,4 +27,16 @@ func UserTypeRoute(route fiber.Router) {
 			Name:      "CanEdit",
 		})
 	}, middleware.RankCheck, controller.AddUserTypeController)
+	route.Post("/updateUserType", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "UserType",
+			Name:      "CanEdit",
+		})
+	}, middleware.RankCheck, controller.UpdateUserTypeController)
+	route.Delete("/deleteUserType", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "UserType",
+			Name:      "CanEdit",
+		})
+	}, middleware.RankCheck, controller.DeleteUserTypeController)
 }

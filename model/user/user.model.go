@@ -53,8 +53,11 @@ type AddUserInput struct {
 	UserTypeID string `json:"userTypeID" bson:"userTypeID"`
 }
 
+type UpdateUserID struct {
+	UserID string `json:"userID" bson:"userID"`
+}
+
 type UpdateUserInput struct {
-	UserID     string `json:"userID" bson:"userID"`
 	Username   string `json:"username" bson:"username"`
 	UserTypeID string `json:"userTypeID" bson:"userTypeID"`
 	Password   string `json:"password" bson:"password"`

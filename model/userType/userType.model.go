@@ -45,3 +45,17 @@ type AddUserTypeInput struct {
 	Permission entity.Permissions `json:"permission" bson:"permission"`
 	Rank       int32              `json:"rank" bson:"rank"`
 }
+
+type UpdateUserTypeID struct {
+	UserTypeID string `json:"userTypeID" bson:"userTypeID"`
+}
+
+type UpdateUserTypeInput struct {
+	Name       string             `json:"name" bson:"name"`
+	Permission entity.Permissions `json:"permission" bson:"permission"`
+	Rank       int32              `json:"rank" bson:"rank"`
+}
+
+type DeleteUserTypeID struct {
+	UserTypeID string `json:"userTypeID" bson:"userTypeID"`
+}

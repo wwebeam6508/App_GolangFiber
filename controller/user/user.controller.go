@@ -113,24 +113,29 @@ func AddUserController(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return exception.ErrorHandler(c, err)
 	}
-	err := service.AddUserService(body)
+	result, err := service.AddUserService(body)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
 	return c.Status(fiber.StatusCreated).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusCreated,
 		Message: "Success",
-		Data:    nil,
+		Data:    result,
 	})
 }
 
 func UpdateUserController(c *fiber.Ctx) error {
+	var query model.UpdateUserID
+	if err := c.QueryParser(&query); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+
 	var body model.UpdateUserInput
 	if err := c.BodyParser(&body); err != nil {
 		return exception.ErrorHandler(c, err)
 	}
 
-	err := service.UpdateUserService(body)
+	err := service.UpdateUserService(body, query)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
