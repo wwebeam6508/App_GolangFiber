@@ -5,6 +5,8 @@ import (
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/userType"
 	"context"
+	"errors"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -90,6 +92,29 @@ func GetUserTypeByIDService(input model.GetUserTypeByIDInput) (model.GetUserType
 	}
 
 	return result[0], nil
+}
+
+func AddUserTypeService(input model.AddUserTypeInput) (primitive.ObjectID, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+	ref := coll.Database("PBD").Collection("userType")
+	//insert
+	insertResult, err := ref.InsertOne(context.Background(), bson.D{
+		{Key: "name", Value: input.Name},
+		{Key: "rank", Value: input.Rank},
+		{Key: "permission", Value: input.Permission},
+		{Key: "status", Value: 1},
+		{Key: "createdAt", Value: primitive.NewDateTimeFromTime(time.Now())},
+	})
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+	if insertResult.InsertedID == nil {
+		return primitive.NilObjectID, errors.New("failed to add userType")
+	}
+	return insertResult.InsertedID.(primitive.ObjectID), nil
 
 }
 

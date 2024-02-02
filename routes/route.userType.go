@@ -21,4 +21,10 @@ func UserTypeRoute(route fiber.Router) {
 			Name:      "CanEdit",
 		})
 	}, middleware.RankCheck, controller.GetUserTypeByIDController)
+	route.Post("/addUserType", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "UserType",
+			Name:      "CanEdit",
+		})
+	}, middleware.RankCheck, controller.AddUserTypeController)
 }

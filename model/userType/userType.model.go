@@ -39,3 +39,9 @@ type SearchPipeline struct {
 	Search         string `json:"search" bson:"search"`
 	SearchPipeline bson.A `json:"searchPipeline" bson:"searchPipeline"`
 }
+
+type AddUserTypeInput struct {
+	Name       string             `json:"name" bson:"name"`
+	Permission entity.Permissions `json:"permission" bson:"permission"`
+	Rank       int32              `json:"rank" bson:"rank"`
+}

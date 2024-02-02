@@ -16,6 +16,7 @@ func RankCheck(c *fiber.Ctx) error {
 	var body struct {
 		UserID     string `json:"userID" bson:"userID"`
 		UserTypeID string `json:"userTypeID" bson:"userTypeID"`
+		Rank       int32  `json:"rank" bson:"rank"`
 	}
 	err := c.BodyParser(&body)
 	if err != nil {
@@ -43,6 +44,12 @@ func RankCheck(c *fiber.Ctx) error {
 	} else if body.UserTypeID != "" {
 		//get userTypeID from claim
 		err := againistOtherType(userData, body.UserTypeID)
+		if err != nil {
+			return exception.ErrorHandler(c, err)
+		}
+	} else if body.Rank != 0 {
+		//get rank from claim
+		err := againistOtherRank(userData, body.Rank)
 		if err != nil {
 			return exception.ErrorHandler(c, err)
 		}
@@ -92,5 +99,18 @@ func againistOtherType(userData map[string]interface{}, userTypeID string) error
 		return exception.UnauthorizedError{Message: "cannot access or change data rank higher than or equal to your rank"}
 	}
 
+	return nil
+}
+
+func againistOtherRank(userData map[string]interface{}, rank int32) error {
+	selfUserID := userData["userID"].(string)
+
+	selfRank, err := service.GetUserRankByUserIDService(model.GetUserTypeByUserIDInput{UserID: selfUserID})
+	if err != nil {
+		return err
+	}
+	if selfRank.Rank >= rank {
+		return exception.UnauthorizedError{Message: "cannot access or change data rank higher than or equal to your rank"}
+	}
 	return nil
 }
