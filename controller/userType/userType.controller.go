@@ -7,7 +7,6 @@ import (
 	model "PBD_backend_go/model/userType"
 	authservice "PBD_backend_go/service/auth"
 	service "PBD_backend_go/service/userType"
-	"fmt"
 	"math"
 	"strings"
 	"time"
@@ -67,22 +66,13 @@ func GetUserTypeController(c *fiber.Ctx) error {
 	}
 
 	//get count
-	allUserTypeCountChan := make(chan int32)
-	errChan := make(chan error)
-	go func() {
-		result, err := service.GetAllUserTypeCountService(searchPipelineGroup)
-		if err != nil {
-			errChan <- err
-			return
-		}
-		allUserTypeCountChan <- result
-	}()
+	allUserTypeCountChan, errChan := make(chan int32), make(chan error)
+	go service.GetAllUserTypeCountService(searchPipelineGroup, allUserTypeCountChan, errChan)
 	if len(errChan) > 0 {
 		return exception.ErrorHandler(c, <-errChan)
 	}
 	//get userType
-	resultChan := make(chan []model.GetUserTypeResult)
-	errChan = make(chan error)
+	resultChan, errChan := make(chan []model.GetUserTypeResult), make(chan error)
 	go func() {
 		result, err := service.GetUserTypeService(input, searchPipelineGroup)
 		if err != nil {
@@ -212,7 +202,6 @@ func filterRankGetUserTypeController(c *fiber.Ctx, input model.GetUserTypeInput,
 	var resultFilter []model.GetUserTypeResult
 	for _, v := range result {
 		if v.Rank > rankInt32 {
-			fmt.Println(v.Rank, rankInt32)
 			resultFilter = append(resultFilter, model.GetUserTypeResult{
 				UserTypeID: v.UserTypeID,
 				Name:       v.Name,
