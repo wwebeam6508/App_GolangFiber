@@ -75,21 +75,23 @@ func GetUserController(c *fiber.Ctx) error {
 	allUserCountChan := make(chan int32)
 	go func() {
 		result, err := service.GetUserService(input, searchPipelineGroup)
+		if err != nil {
+			errChan <- err
+			return
+		}
 		resultChan <- result
-		errChan <- err
 	}()
 	go func() {
 		allUserCount := service.GetAllUserCount(searchPipelineGroup)
 		allUserCountChan <- allUserCount
 	}()
+	if len(errChan) > 0 {
+		return exception.ErrorHandler(c, <-errChan)
+	}
 	result := <-resultChan
-	err := <-errChan
 	allUserCount := <-allUserCountChan
 
 	pages := common.PageArray(allUserCount, input.PageSize, input.Page, 5)
-	if err != nil {
-		return exception.ErrorHandler(c, err)
-	}
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "Success",
@@ -177,16 +179,7 @@ func DeleteUserController(c *fiber.Ctx) error {
 }
 
 func GetUserTypeNameController(c *fiber.Ctx) error {
-	resultChan := make(chan []model.GetUserTypeServiceResult)
-	errChan := make(chan error)
-	go func() {
-		result, err := service.GetUserTypeService()
-		resultChan <- result
-		errChan <- err
-	}()
-	result := <-resultChan
-	err := <-errChan
-
+	result, err := service.GetUserTypeService()
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}

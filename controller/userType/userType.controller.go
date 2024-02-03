@@ -65,14 +65,41 @@ func GetUserTypeController(c *fiber.Ctx) error {
 		Search:       body.Search,
 		SearchFilter: body.SearchFilter,
 	}
-	allUserTypeCount := service.GetAllUserTypeCountService(searchPipelineGroup)
-	result, err := service.GetUserTypeService(input, searchPipelineGroup)
-	if err != nil {
-		return exception.ErrorHandler(c, err)
+
+	//get count
+	allUserTypeCountChan := make(chan int32)
+	errChan := make(chan error)
+	go func() {
+		result, err := service.GetAllUserTypeCountService(searchPipelineGroup)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		allUserTypeCountChan <- result
+	}()
+	if len(errChan) > 0 {
+		return exception.ErrorHandler(c, <-errChan)
 	}
+	//get userType
+	resultChan := make(chan []model.GetUserTypeResult)
+	errChan = make(chan error)
+	go func() {
+		result, err := service.GetUserTypeService(input, searchPipelineGroup)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		resultChan <- result
+	}()
+	if len(errChan) > 0 {
+		return exception.ErrorHandler(c, <-errChan)
+	}
+	result := <-resultChan
+	allUserTypeCount := <-allUserTypeCountChan
+
 	pages := common.PageArray(allUserTypeCount, input.PageSize, input.Page, 5)
 	//filter rank
-	result, err = filterRankGetUserTypeController(c, input, result)
+	result, err := filterRankGetUserTypeController(c, input, result)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
