@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
-	"strings"
+	"reflect"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -56,8 +56,12 @@ func RandomString(length int) string {
 	return string(b)
 }
 
-func IsEmpty(str string) bool {
-	return len(strings.TrimSpace(str)) == 0
+func IsEmpty(x interface{}) bool {
+	//check if x is array
+	if reflect.TypeOf(x).Kind() == reflect.Slice {
+		return reflect.ValueOf(x).Len() == 0
+	}
+	return x == reflect.Zero(reflect.TypeOf(x)).Interface()
 }
 
 // EncryptPassword encrypts the password using bcrypt

@@ -45,3 +45,15 @@ type AddCustomerInput struct {
 	Emails  []string `json:"emails" bson:"emails"`
 	Phones  []string `json:"phones" bson:"phones"`
 }
+
+type UpdateCustomerID struct {
+	CustomerID string `json:"customerID" bson:"customerID" validate:"required"`
+}
+
+type UpdateCustomerInput struct {
+	Name    string   `json:"name" bson:"name"`
+	Address string   `json:"address" bson:"address"`
+	TaxID   string   `json:"taxID" bson:"taxID"`
+	Emails  []string `json:"emails" bson:"emails" validate:"email"`
+	Phones  []string `json:"phones" bson:"phones" `
+}

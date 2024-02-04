@@ -27,4 +27,10 @@ func CustomerRoute(route fiber.Router) {
 			Name:      "CanEdit",
 		})
 	}, controller.AddCustomerController)
+	route.Post("/updateCustomer", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Customer",
+			Name:      "CanEdit",
+		})
+	}, controller.UpdateCustomerController)
 }

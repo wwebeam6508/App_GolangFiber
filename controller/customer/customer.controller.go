@@ -116,6 +116,31 @@ func AddCustomerController(c *fiber.Ctx) error {
 
 }
 
+func UpdateCustomerController(c *fiber.Ctx) error {
+	var query model.UpdateCustomerID
+	if err := c.QueryParser(&query); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	validate := validator.New()
+	err := validate.Struct(query)
+	if err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: err.Error()})
+	}
+
+	var body model.UpdateCustomerInput
+	if err := c.BodyParser(&body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	err = service.UpdateCustomerService(body, query)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+	})
+}
+
 func getCustomerBodyCondition(body model.GetCustomerInput) model.GetCustomerInput {
 	if body.Page == 0 {
 		body.Page = 1
