@@ -1,6 +1,7 @@
 package service
 
 import (
+	"PBD_backend_go/common"
 	"PBD_backend_go/configuration"
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/userType"
@@ -119,7 +120,7 @@ func AddUserTypeService(input model.AddUserTypeInput) (primitive.ObjectID, error
 }
 
 func UpdateUserTypeService(input model.UpdateUserTypeInput, id model.UpdateUserTypeID) error {
-	if id.UserTypeID == "" {
+	if common.IsEmpty(id.UserTypeID) {
 		return exception.ValidationError{Message: "userTypeID is empty"}
 	}
 	coll, err := configuration.ConnectToMongoDB()
@@ -137,7 +138,7 @@ func UpdateUserTypeService(input model.UpdateUserTypeInput, id model.UpdateUserT
 	//dynamic check by for loop
 	refValue := reflect.ValueOf(input)
 	for i := 0; i < refValue.NumField(); i++ {
-		if refValue.Field(i).Interface() != "" {
+		if !common.IsEmpty(refValue.Field(i).Interface()) {
 			updateField = append(updateField, bson.E{Key: refValue.Type().Field(i).Tag.Get("json"), Value: refValue.Field(i).Interface()})
 		}
 	}

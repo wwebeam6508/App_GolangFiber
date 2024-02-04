@@ -1,6 +1,7 @@
 package service
 
 import (
+	"PBD_backend_go/common"
 	"PBD_backend_go/configuration"
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/user"
@@ -154,7 +155,7 @@ func UpdateUserService(input model.UpdateUserInput, id model.UpdateUserID) error
 			continue
 		}
 
-		if reflectInput.Field(i).Interface() != "" {
+		if !common.IsEmpty(reflectInput.Field(i).Interface()) {
 			updateData = append(updateData, bson.E{Key: reflectInput.Type().Field(i).Tag.Get("bson"), Value: reflectInput.Field(i).Interface()})
 		}
 	}
