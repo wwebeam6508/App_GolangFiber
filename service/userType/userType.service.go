@@ -70,7 +70,7 @@ func GetUserTypeByIDService(input model.GetUserTypeByIDInput) (model.GetUserType
 	if err != nil {
 		return model.GetUserTypeResult{}, exception.ValidationError{Message: "invalid userTypeID"}
 	}
-	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: userTypeIDObjectID}}}}
+	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: userTypeIDObjectID}, {Key: "status", Value: 1}}}}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
 		{Key: "userTypeID", Value: "$_id"},
 		{Key: "name", Value: 1},
@@ -141,7 +141,8 @@ func UpdateUserTypeService(input model.UpdateUserTypeInput, id model.UpdateUserT
 			updateField = append(updateField, bson.E{Key: refValue.Type().Field(i).Tag.Get("json"), Value: refValue.Field(i).Interface()})
 		}
 	}
-	updateResult, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userTypeIDObjectID}}, bson.D{{Key: "$set", Value: updateField}})
+	updateResult, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userTypeIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: updateField}})
+
 	if err != nil {
 		return err
 	}
@@ -165,7 +166,7 @@ func DeleteUserTypeService(id model.DeleteUserTypeID) error {
 	if err != nil {
 		return exception.ValidationError{Message: "invalid userTypeID"}
 	}
-	deleteResult, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userTypeIDObjectID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
+	deleteResult, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userTypeIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
 	if err != nil {
 		return err
 	}
@@ -173,7 +174,6 @@ func DeleteUserTypeService(id model.DeleteUserTypeID) error {
 		return exception.NotFoundError{Message: "userType not found"}
 	}
 	return nil
-
 }
 
 func GetAllUserTypeCountService(input model.SearchPipeline, resultChan chan<- int32, errChan chan<- error) {

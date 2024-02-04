@@ -179,7 +179,7 @@ func UpdateUserService(input model.UpdateUserInput, id model.UpdateUserID) error
 	if err != nil {
 		return exception.ValidationError{Message: "invalid userID"}
 	}
-	coll.Database("PBD").Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}}, bson.D{{Key: "$set", Value: updateData}})
+	coll.Database("PBD").Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: updateData}})
 	return nil
 }
 
@@ -193,7 +193,7 @@ func DeleteUserService(input model.DeleteUserInput) error {
 	if err != nil {
 		return exception.ValidationError{Message: "invalid userID"}
 	}
-	coll.Database("PBD").Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
+	coll.Database("PBD").Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
 	return nil
 }
 

@@ -8,7 +8,15 @@ require (
 	go.mongodb.org/mongo-driver v1.13.1
 )
 
-require github.com/adam-lavrik/go-imath v0.0.0-20210910152346-265a42a96f0b // indirect
+require (
+	github.com/adam-lavrik/go-imath v0.0.0-20210910152346-265a42a96f0b // indirect
+	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-playground/validator/v10 v10.17.0 // indirect
+	github.com/leodido/go-urn v1.2.4 // indirect
+	golang.org/x/net v0.17.0 // indirect
+)
 
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
