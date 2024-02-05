@@ -70,23 +70,32 @@ func GetUserController(c *fiber.Ctx) error {
 		Search:         body.Search,
 		SearchPipeline: searchPipeline,
 	}
-	resultChan := make(chan []model.GetUserServiceResult)
-	errChan := make(chan error)
-	allUserCountChan := make(chan int32)
+	resultChan := make(chan []model.GetUserServiceResult, 1)
+	errChan := make(chan error, 1)
+	allUserCountChan := make(chan int32, 1)
 	go func() {
 		result, err := service.GetUserService(input, searchPipelineGroup)
 		if err != nil {
 			errChan <- err
+			allUserCountChan <- 0
 			return
 		}
 		resultChan <- result
+		errChan <- nil
 	}()
 	go func() {
-		allUserCount := service.GetAllUserCount(searchPipelineGroup)
+		allUserCount, err := service.GetAllUserCount(searchPipelineGroup)
+		if err != nil {
+			errChan <- err
+			allUserCountChan <- 0
+			return
+		}
 		allUserCountChan <- allUserCount
+		errChan <- nil
 	}()
-	if len(errChan) > 0 {
-		return exception.ErrorHandler(c, <-errChan)
+	err := <-errChan
+	if err != nil {
+		return exception.ErrorHandler(c, err)
 	}
 	result := <-resultChan
 	allUserCount := <-allUserCountChan

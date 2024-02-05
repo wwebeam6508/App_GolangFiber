@@ -198,10 +198,10 @@ func DeleteUserService(input model.DeleteUserInput) error {
 	return nil
 }
 
-func GetAllUserCount(searchPipeline model.SearchPipeline) int32 {
+func GetAllUserCount(searchPipeline model.SearchPipeline) (int32, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	if err != nil {
-		return 0
+		return 0, err
 	}
 	ref := coll.Database("PBD").Collection("users")
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
@@ -212,14 +212,14 @@ func GetAllUserCount(searchPipeline model.SearchPipeline) int32 {
 	}
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
 	if err != nil {
-		return 0
+		return 0, err
 	}
 	var result []bson.M
 	err = cursor.All(context.Background(), &result)
 	if err != nil {
-		return 0
+		return 0, err
 	}
-	return result[0]["count"].(int32)
+	return result[0]["count"].(int32), nil
 }
 
 func GetUserTypeService() ([]model.GetUserTypeServiceResult, error) {
