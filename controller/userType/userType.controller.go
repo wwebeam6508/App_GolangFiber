@@ -58,30 +58,39 @@ func GetUserTypeController(c *fiber.Ctx) error {
 	}
 
 	//get count
-	allUserTypeCountChan, errChan := make(chan int32), make(chan error)
-	go service.GetAllUserTypeCountService(searchPipelineGroup, allUserTypeCountChan, errChan)
-	if len(errChan) > 0 {
-		return exception.ErrorHandler(c, <-errChan)
-	}
+	allUserTypeCountChan, errChan := make(chan int32, 1), make(chan error, 1)
+	go func() {
+		count, err := service.GetAllUserTypeCountService(searchPipelineGroup)
+		if err != nil {
+			errChan <- err
+			allUserTypeCountChan <- 0
+			return
+		}
+		allUserTypeCountChan <- count
+		errChan <- nil
+	}()
 	//get userType
-	resultChan, errChan := make(chan []model.GetUserTypeResult), make(chan error)
+	resultChan, errChan := make(chan []model.GetUserTypeResult, 1), make(chan error, 1)
 	go func() {
 		result, err := service.GetUserTypeService(body, searchPipelineGroup)
 		if err != nil {
 			errChan <- err
+			resultChan <- nil
 			return
 		}
 		resultChan <- result
+		errChan <- nil
 	}()
-	if len(errChan) > 0 {
-		return exception.ErrorHandler(c, <-errChan)
+	err := <-errChan
+	if err != nil {
+		return exception.ErrorHandler(c, err)
 	}
 	result := <-resultChan
 	allUserTypeCount := <-allUserTypeCountChan
 
 	pages := common.PageArray(allUserTypeCount, body.PageSize, body.Page, 5)
 	//filter rank
-	result, err := filterRankGetUserTypeController(c, body, result)
+	result, err = filterRankGetUserTypeController(c, body, result)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
