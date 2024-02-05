@@ -21,10 +21,8 @@ func GetCustomerController(c *fiber.Ctx) error {
 	}
 	body = getCustomerBodyCondition(body)
 
-	searchPipeline := bson.A{}
-	if body.Search != "%%" && body.SearchFilter != "%%" {
-		searchPipeline = append(searchPipeline, bson.M{body.SearchFilter: bson.M{"$regex": body.Search, "$options": "i"}})
-	}
+	searchPipeline := getSearchPipeline(body.Search, body.SearchFilter)
+
 	searchPipelineGroup := model.SearchPipeline{
 		Search:         body.Search,
 		SearchPipeline: searchPipeline,
@@ -164,6 +162,14 @@ func DeleteCustomerController(c *fiber.Ctx) error {
 		Code:    fiber.StatusOK,
 		Message: "Success",
 	})
+}
+
+func getSearchPipeline(search, searchFilter string) bson.A {
+	pipeline := bson.A{}
+	if search != "%%" && searchFilter != "%%" {
+		pipeline = append(pipeline, bson.M{searchFilter: bson.M{"$regex": search, "$options": "i"}})
+	}
+	return pipeline
 }
 
 func getCustomerBodyCondition(body model.GetCustomerInput) model.GetCustomerInput {

@@ -25,37 +25,9 @@ func GetUserController(c *fiber.Ctx) error {
 	}
 	body = getUserBodyCondition(body)
 	// searchPipeline as array
-	searchPipeline := bson.A{}
-	if body.Search != "%%" && body.SearchFilter != "%%" {
-		// if searchFilter is "userType" then { "userType.name": { $regex: search, $options: "i" } }
-		if body.SearchFilter == "userType" {
-			searchPipeline = append(searchPipeline, bson.M{"userType.name": bson.M{"$regex": body.Search, "$options": "i"}})
-		} else if body.SearchFilter == "date" {
-			split := strings.Split(body.Search, ",")
-			if len(split) != 2 {
-				return exception.ValidationError{Message: "invalid date"}
-			}
-			if split[1] == "" {
-				//time Parse
-				dateSearch, err := time.Parse(time.RFC3339, split[0])
-				if err != nil {
-					return exception.ErrorHandler(c, err)
-				}
-				searchPipeline = append(searchPipeline, bson.M{"createdAt": bson.M{"$gte": primitive.NewDateTimeFromTime(dateSearch)}})
-			} else {
-				dateStartSearch, err := time.Parse(time.RFC3339, split[0])
-				if err != nil {
-					return exception.ErrorHandler(c, err)
-				}
-				dateEndSearch, err := time.Parse(time.RFC3339, split[1])
-				if err != nil {
-					return exception.ErrorHandler(c, err)
-				}
-				searchPipeline = append(searchPipeline, bson.M{"createdAt": bson.M{"$gte": primitive.NewDateTimeFromTime(dateStartSearch), "$lte": primitive.NewDateTimeFromTime(dateEndSearch)}})
-			}
-		} else {
-			searchPipeline = append(searchPipeline, bson.M{body.SearchFilter: bson.M{"$regex": body.Search, "$options": "i"}})
-		}
+	searchPipeline, err := getSearchPipeline(body.Search, body.SearchFilter)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
 	}
 	searchPipelineGroup := model.SearchPipeline{
 		Search:         body.Search,
@@ -93,7 +65,7 @@ func GetUserController(c *fiber.Ctx) error {
 		allUserCountChan <- allUserCount
 		errChan <- nil
 	}()
-	err := <-errChan
+	err = <-errChan
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
@@ -225,6 +197,42 @@ func GetUserTypeNameController(c *fiber.Ctx) error {
 		Message: "Success",
 		Data:    resultFilter,
 	})
+}
+
+func getSearchPipeline(search, searchFilter string) (bson.A, error) {
+	searchPipeline := bson.A{}
+	if search != "%%" && searchFilter != "%%" {
+		// if searchFilter is "userType" then { "userType.name": { $regex: search, $options: "i" } }
+		if searchFilter == "userType" {
+			searchPipeline = append(searchPipeline, bson.M{"userType.name": bson.M{"$regex": search, "$options": "i"}})
+		} else if searchFilter == "date" {
+			split := strings.Split(search, ",")
+			if len(split) != 2 {
+				return searchPipeline, exception.ValidationError{Message: "invalid date"}
+			}
+			if split[1] == "" {
+				//time Parse
+				dateSearch, err := time.Parse(time.RFC3339, split[0])
+				if err != nil {
+					return searchPipeline, exception.ValidationError{Message: "invalid date"}
+				}
+				searchPipeline = append(searchPipeline, bson.M{"createdAt": bson.M{"$gte": primitive.NewDateTimeFromTime(dateSearch)}})
+			} else {
+				dateStartSearch, err := time.Parse(time.RFC3339, split[0])
+				if err != nil {
+					return searchPipeline, exception.ValidationError{Message: "invalid date"}
+				}
+				dateEndSearch, err := time.Parse(time.RFC3339, split[1])
+				if err != nil {
+					return searchPipeline, exception.ValidationError{Message: "invalid date"}
+				}
+				searchPipeline = append(searchPipeline, bson.M{"createdAt": bson.M{"$gte": primitive.NewDateTimeFromTime(dateStartSearch), "$lte": primitive.NewDateTimeFromTime(dateEndSearch)}})
+			}
+		} else {
+			searchPipeline = append(searchPipeline, bson.M{searchFilter: bson.M{"$regex": search, "$options": "i"}})
+		}
+	}
+	return searchPipeline, nil
 }
 
 func getUserBodyCondition(input model.GetUserControllerInput) model.GetUserControllerInput {
