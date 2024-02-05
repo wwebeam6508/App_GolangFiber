@@ -176,3 +176,23 @@ func UpdateCustomerService(input model.UpdateCustomerInput, updateCustomerID mod
 	}
 	return nil
 }
+
+func DeleteCustomerService(input model.DeleteCustomerInput) error {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return err
+	}
+	ref := coll.Database("PBD").Collection("customers")
+	customerIDObjectID, err := primitive.ObjectIDFromHex(input.CustomerID)
+	if err != nil {
+		return exception.ValidationError{Message: "invalid customerID"}
+	}
+	deleteResult, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: customerIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
+	if err != nil {
+		return err
+	}
+	if deleteResult.MatchedCount == 0 {
+		return exception.NotFoundError{Message: "customer not found"}
+	}
+	return nil
+}

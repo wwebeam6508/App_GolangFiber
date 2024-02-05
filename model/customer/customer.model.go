@@ -57,3 +57,9 @@ type UpdateCustomerInput struct {
 	Emails  []string `json:"emails" bson:"emails" validate:"email"`
 	Phones  []string `json:"phones" bson:"phones" `
 }
+
+type DeleteCustomerInput struct {
+	CustomerID string `json:"customerID" bson:"customerID" validate:"required"`
+}
+
+

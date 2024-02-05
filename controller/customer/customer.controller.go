@@ -141,6 +141,26 @@ func UpdateCustomerController(c *fiber.Ctx) error {
 	})
 }
 
+func DeleteCustomerController(c *fiber.Ctx) error {
+	var body model.DeleteCustomerInput
+	if err := c.QueryParser(&body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	validate := validator.New()
+	err := validate.Struct(body)
+	if err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: err.Error()})
+	}
+	err = service.DeleteCustomerService(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+	})
+}
+
 func getCustomerBodyCondition(body model.GetCustomerInput) model.GetCustomerInput {
 	if body.Page == 0 {
 		body.Page = 1

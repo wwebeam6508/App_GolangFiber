@@ -33,4 +33,10 @@ func CustomerRoute(route fiber.Router) {
 			Name:      "CanEdit",
 		})
 	}, controller.UpdateCustomerController)
+	route.Delete("/deleteCustomer", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Customer",
+			Name:      "CanRemove",
+		})
+	}, controller.DeleteCustomerController)
 }

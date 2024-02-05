@@ -36,7 +36,7 @@ func UserTypeRoute(route fiber.Router) {
 	route.Delete("/deleteUserType", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "UserType",
-			Name:      "CanEdit",
+			Name:      "CanRemove",
 		})
 	}, middleware.RankCheck, controller.DeleteUserTypeController)
 }
