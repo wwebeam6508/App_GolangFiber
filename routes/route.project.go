@@ -15,4 +15,11 @@ func ProjectRoute(route fiber.Router) {
 			Name:      "CanView",
 		})
 	}, controller.GetProjectController)
+	route.Get("/getByID", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Project",
+			Name:      "CanEdit",
+		})
+	}, controller.GetProjectByIDController)
+
 }

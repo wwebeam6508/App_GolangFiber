@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -74,6 +75,32 @@ func GetProjectController(c *fiber.Ctx) error {
 			LastPage:    int(math.Ceil(float64(projectCount) / float64(body.PageSize))),
 		},
 	})
+}
+
+func GetProjectByIDController(c *fiber.Ctx) error {
+	var body model.GetProjectByIDInput
+	if err := c.QueryParser(&body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	validate := validator.New()
+	err := validate.Struct(body)
+	if err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: err.Error()})
+	}
+
+	if err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: "invalid project id"})
+	}
+	project, err := service.GetProjectByIDService(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    project,
+	})
+
 }
 
 func getSearchPipeline(search string, searchFilter string) (bson.A, error) {

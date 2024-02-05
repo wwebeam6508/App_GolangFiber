@@ -3,10 +3,12 @@ package service
 import (
 	"PBD_backend_go/common"
 	"PBD_backend_go/configuration"
+	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/project"
 	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetProjectService(input model.GetProjectInput, searchPipeline model.SearchPipeline) ([]model.GetProjectServiceResult, error) {
@@ -100,4 +102,55 @@ func GetProjectCountService(searchPipeline model.SearchPipeline) (int32, error) 
 		return 0, err
 	}
 	return result[0]["count"].(int32), nil
+}
+
+func GetProjectByIDService(input model.GetProjectByIDInput) (model.GetProjectByIDResult, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return model.GetProjectByIDResult{}, err
+	}
+	ref := coll.Database("PBD").Collection("works")
+	pipeline := getPipelineGetProjectByID(input.ProjectID)
+	cursor, err := ref.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return model.GetProjectByIDResult{}, err
+	}
+	var result []model.GetProjectByIDResult
+	err = cursor.All(context.Background(), &result)
+	if err != nil {
+		return model.GetProjectByIDResult{}, err
+	}
+	if len(result) == 0 {
+		return model.GetProjectByIDResult{}, exception.NotFoundError{Message: "Project not found"}
+	}
+
+	return result[0], nil
+}
+
+func getPipelineGetProjectByID(projectID string) bson.A {
+	projectObjectID, _ := primitive.ObjectIDFromHex(projectID)
+	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: projectObjectID}}}}
+	lookupStage := bson.D{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "customers"},
+		{Key: "localField", Value: "customer.$id"},
+		{Key: "foreignField", Value: "_id"},
+		{Key: "as", Value: "customer"},
+	}}}
+	unwindStage := bson.D{{Key: "$unwind", Value: bson.D{
+		{Key: "path", Value: "$customer"},
+	}}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{
+		{Key: "projectID", Value: "$_id"},
+		{Key: "title", Value: 1},
+		{Key: "date", Value: bson.D{
+			{Key: "$toDate", Value: "$date"},
+		}},
+		{Key: "profit", Value: 1},
+		{Key: "dateEnd", Value: bson.D{
+			{Key: "$toDate", Value: "$dateEnd"},
+		}},
+		{Key: "detail", Value: 1},
+		{Key: "customer", Value: "$customer._id"},
+		{Key: "images", Value: 1}}}}
+	return bson.A{matchState, lookupStage, unwindStage, projectStage}
 }
