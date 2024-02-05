@@ -57,11 +57,10 @@ func GetCustomerService(input model.GetCustomerInput, searchPipeline model.Searc
 	return result, nil
 }
 
-func GetCustomerCountService(searchPipeline model.SearchPipeline, resultChan chan<- int32, errChan chan<- error) {
+func GetCustomerCountService(searchPipeline model.SearchPipeline) (int32, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	if err != nil {
-		errChan <- err
-		return
+		return 0, err
 	}
 	ref := coll.Database("PBD").Collection("customers")
 	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
@@ -74,15 +73,13 @@ func GetCustomerCountService(searchPipeline model.SearchPipeline, resultChan cha
 	var result []bson.M
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
 	if err != nil {
-		errChan <- err
-		return
+		return 0, err
 	}
 	err = cursor.All(context.Background(), &result)
 	if err != nil {
-		errChan <- err
-		return
+		return 0, err
 	}
-	resultChan <- result[0]["count"].(int32)
+	return result[0]["count"].(int32), nil
 }
 
 func GetCustomerByIDService(input model.GetCustomerByIDInput) (model.GetCustomerByIDResult, error) {
