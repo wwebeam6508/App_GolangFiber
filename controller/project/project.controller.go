@@ -52,7 +52,7 @@ func GetProjectController(c *fiber.Ctx) error {
 		Search:         body.Search,
 		SearchPipeline: searchPipeline,
 	}
-	projectCountChan, errChan := make(chan int32, 1), make(chan error, 1)
+	projectCountChan, errChan := make(chan int32, 1), make(chan error, 2)
 	go func() {
 		count, err := service.GetProjectCountService(searchPipelineGroup)
 		if err != nil {
@@ -67,7 +67,7 @@ func GetProjectController(c *fiber.Ctx) error {
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
-	projectChan, errChan := make(chan []model.GetProjectServiceResult, 1), make(chan error, 1)
+	projectChan := make(chan []model.GetProjectServiceResult, 1)
 	go func() {
 		project, err := service.GetProjectService(body, searchPipelineGroup)
 		if err != nil {

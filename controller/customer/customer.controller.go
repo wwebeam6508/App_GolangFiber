@@ -29,7 +29,7 @@ func GetCustomerController(c *fiber.Ctx) error {
 		Search:         body.Search,
 		SearchPipeline: searchPipeline,
 	}
-	customerCountChan, errChan := make(chan int32, 1), make(chan error, 1)
+	customerCountChan, errChan := make(chan int32, 1), make(chan error, 2)
 	go func() {
 		count, err := service.GetCustomerCountService(searchPipelineGroup)
 		if err != nil {
@@ -44,7 +44,7 @@ func GetCustomerController(c *fiber.Ctx) error {
 	if err != nil {
 		return exception.ErrorHandler(c, <-errChan)
 	}
-	customerChan, errChan := make(chan []model.GetCustomerResult, 1), make(chan error, 1)
+	customerChan := make(chan []model.GetCustomerResult, 1)
 	go func() {
 		customer, err := service.GetCustomerService(body, searchPipelineGroup)
 		if err != nil {

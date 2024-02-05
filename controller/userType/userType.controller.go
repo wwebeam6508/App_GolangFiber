@@ -58,7 +58,7 @@ func GetUserTypeController(c *fiber.Ctx) error {
 	}
 
 	//get count
-	allUserTypeCountChan, errChan := make(chan int32, 1), make(chan error, 1)
+	allUserTypeCountChan, errChan := make(chan int32, 1), make(chan error, 2)
 	go func() {
 		count, err := service.GetAllUserTypeCountService(searchPipelineGroup)
 		if err != nil {
@@ -70,7 +70,7 @@ func GetUserTypeController(c *fiber.Ctx) error {
 		errChan <- nil
 	}()
 	//get userType
-	resultChan, errChan := make(chan []model.GetUserTypeResult, 1), make(chan error, 1)
+	resultChan := make(chan []model.GetUserTypeResult, 1)
 	go func() {
 		result, err := service.GetUserTypeService(body, searchPipelineGroup)
 		if err != nil {

@@ -71,7 +71,7 @@ func GetUserController(c *fiber.Ctx) error {
 		SearchPipeline: searchPipeline,
 	}
 	resultChan := make(chan []model.GetUserServiceResult, 1)
-	errChan := make(chan error, 1)
+	errChan := make(chan error, 2)
 	allUserCountChan := make(chan int32, 1)
 	go func() {
 		result, err := service.GetUserService(input, searchPipelineGroup)
