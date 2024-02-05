@@ -29,14 +29,6 @@ func GetCustomerController(c *fiber.Ctx) error {
 		Search:         body.Search,
 		SearchPipeline: searchPipeline,
 	}
-	input := model.GetCustomerInput{
-		Page:         body.Page,
-		PageSize:     body.PageSize,
-		SortTitle:    body.SortTitle,
-		SortType:     body.SortType,
-		Search:       body.Search,
-		SearchFilter: body.SearchFilter,
-	}
 	customerCountChan, errChan := make(chan int32), make(chan error)
 	go service.GetCustomerCountService(searchPipelineGroup, customerCountChan, errChan)
 	if len(errChan) > 0 {
@@ -44,7 +36,7 @@ func GetCustomerController(c *fiber.Ctx) error {
 	}
 	customerChan, errChan := make(chan []model.GetCustomerResult), make(chan error)
 	go func() {
-		customer, err := service.GetCustomerService(input, searchPipelineGroup)
+		customer, err := service.GetCustomerService(body, searchPipelineGroup)
 		if err != nil {
 			errChan <- err
 			return
@@ -56,15 +48,15 @@ func GetCustomerController(c *fiber.Ctx) error {
 	}
 	customerCount := <-customerCountChan
 	customer := <-customerChan
-	pages := common.PageArray(customerCount, input.PageSize, input.Page, 5)
+	pages := common.PageArray(customerCount, body.PageSize, body.Page, 5)
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "Success",
 		Data: commonentity.PaginationResponse{
-			CurrentPage: input.Page,
+			CurrentPage: body.Page,
 			Pages:       pages,
 			Data:        customer,
-			LastPage:    int(math.Ceil(float64(customerCount) / float64(input.PageSize))),
+			LastPage:    int(math.Ceil(float64(customerCount) / float64(body.PageSize))),
 		},
 	})
 }

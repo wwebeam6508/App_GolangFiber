@@ -56,14 +56,6 @@ func GetUserTypeController(c *fiber.Ctx) error {
 		Search:         body.Search,
 		SearchPipeline: searchPipeline,
 	}
-	input := model.GetUserTypeInput{
-		Page:         body.Page,
-		PageSize:     body.PageSize,
-		SortTitle:    body.SortTitle,
-		SortType:     body.SortType,
-		Search:       body.Search,
-		SearchFilter: body.SearchFilter,
-	}
 
 	//get count
 	allUserTypeCountChan, errChan := make(chan int32), make(chan error)
@@ -74,7 +66,7 @@ func GetUserTypeController(c *fiber.Ctx) error {
 	//get userType
 	resultChan, errChan := make(chan []model.GetUserTypeResult), make(chan error)
 	go func() {
-		result, err := service.GetUserTypeService(input, searchPipelineGroup)
+		result, err := service.GetUserTypeService(body, searchPipelineGroup)
 		if err != nil {
 			errChan <- err
 			return
@@ -87,9 +79,9 @@ func GetUserTypeController(c *fiber.Ctx) error {
 	result := <-resultChan
 	allUserTypeCount := <-allUserTypeCountChan
 
-	pages := common.PageArray(allUserTypeCount, input.PageSize, input.Page, 5)
+	pages := common.PageArray(allUserTypeCount, body.PageSize, body.Page, 5)
 	//filter rank
-	result, err := filterRankGetUserTypeController(c, input, result)
+	result, err := filterRankGetUserTypeController(c, body, result)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
@@ -97,10 +89,10 @@ func GetUserTypeController(c *fiber.Ctx) error {
 		Code:    fiber.StatusOK,
 		Message: "Success",
 		Data: bson.M{
-			"currentPage": input.Page,
+			"currentPage": body.Page,
 			"pages":       pages,
 			"data":        result,
-			"lastPage":    math.Ceil(float64(allUserTypeCount) / float64(input.PageSize)),
+			"lastPage":    math.Ceil(float64(allUserTypeCount) / float64(body.PageSize)),
 		},
 	})
 }

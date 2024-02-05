@@ -82,10 +82,6 @@ func GetCustomerCountService(searchPipeline model.SearchPipeline, resultChan cha
 		errChan <- err
 		return
 	}
-	if len(result) == 0 {
-		resultChan <- 0
-		return
-	}
 	resultChan <- result[0]["count"].(int32)
 }
 
