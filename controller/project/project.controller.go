@@ -7,6 +7,7 @@ import (
 	model "PBD_backend_go/model/project"
 	service "PBD_backend_go/service/project"
 	"math"
+	"strconv"
 	"strings"
 	"time"
 
@@ -101,6 +102,133 @@ func GetProjectByIDController(c *fiber.Ctx) error {
 		Data:    project,
 	})
 
+}
+
+func AddProjectController(c *fiber.Ctx) error {
+	var body model.AddProjectInput
+	if err := c.BodyParser(&body); err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: err.Error()})
+	}
+	validate := validator.New()
+	err := validate.Struct(body)
+
+	if err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: err.Error()})
+	}
+	if body.DateEnd.Before(body.Date) {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: "date end must be after date"})
+	}
+	projectID, err := service.AddProjectService(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+
+	if len(body.Images) > 0 {
+		ImagesUrl := make([]string, len(body.Images))
+		for i, image := range body.Images {
+			imageIndex := strconv.Itoa(i)
+			url, err := common.UploadImageToStorage("works", projectID.Hex()+"_"+imageIndex, image)
+			if err != nil {
+				service.DeleteProjectService(projectID.Hex())
+				for i := 0; i < len(body.Images); i++ {
+					common.DeleteImageFromStorage("works", projectID.Hex()+"_"+strconv.Itoa(i))
+				}
+				return exception.ErrorHandler(c, err)
+			}
+			ImagesUrl[i] = url
+		}
+		err = service.UpdateProjectService(model.UpdateProjectInput{Images: ImagesUrl}, projectID.Hex())
+		if err != nil {
+			return exception.ErrorHandler(c, err)
+		}
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    projectID,
+	})
+}
+
+func UpdateProjectController(c *fiber.Ctx) error {
+	var query model.UpdateProjectID
+	if err := c.QueryParser(&query); err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: err.Error()})
+	}
+	var body model.UpdateProjectInput
+	if err := c.BodyParser(&body); err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: err.Error()})
+	}
+	validate := validator.New()
+	err := validate.Struct(body)
+	if err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: err.Error()})
+	}
+	err = validate.Struct(query)
+	if err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: err.Error()})
+	}
+	if body.DateEnd.Before(body.Date) {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: "date end must be after date"})
+	}
+	err = service.UpdateProjectService(body, query.ProjectID)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	if len(body.Images) > 0 {
+		ImagesUrl := make([]string, len(body.Images))
+		for i, image := range body.Images {
+			imageIndex := strconv.Itoa(i)
+			url, err := common.UploadImageToStorage("project", query.ProjectID+"_"+imageIndex, image)
+			if err != nil {
+				return exception.ErrorHandler(c, err)
+			}
+			ImagesUrl[i] = url
+		}
+		err = service.UpdateProjectService(model.UpdateProjectInput{Images: ImagesUrl}, query.ProjectID)
+		if err != nil {
+			return exception.ErrorHandler(c, err)
+		}
+
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    nil,
+	})
+}
+
+func DeleteProjectController(c *fiber.Ctx) error {
+	var query model.DeleteProjectInput
+	if err := c.QueryParser(&query); err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: err.Error()})
+	}
+	validate := validator.New()
+	err := validate.Struct(query)
+	if err != nil {
+		return exception.ErrorHandler(c, exception.ValidationError{Message: err.Error()})
+	}
+	err = service.DeleteProjectService(query.ProjectID)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    nil,
+	})
+}
+
+func GetCustomerNameController(c *fiber.Ctx) error {
+
+	result, err := service.GetCustomerNameService()
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    result,
+	})
 }
 
 func getSearchPipeline(search string, searchFilter string) (bson.A, error) {

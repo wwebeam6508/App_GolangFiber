@@ -6,6 +6,7 @@ import (
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/project"
 	"context"
+	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -34,7 +35,7 @@ func GetProjectService(input model.GetProjectInput, searchPipeline model.SearchP
 	}}}
 
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
-		{Key: "projectID", Value: "$_id"},
+		{Key: "workID", Value: "$_id"},
 		{Key: "title", Value: 1},
 		{Key: "date", Value: bson.D{
 			{Key: "$toDate", Value: "$date"},
@@ -43,14 +44,7 @@ func GetProjectService(input model.GetProjectInput, searchPipeline model.SearchP
 		{Key: "dateEnd", Value: bson.D{
 			{Key: "$toDate", Value: "$dateEnd"},
 		}},
-		{Key: "customer", Value: bson.D{
-			{Key: "$cond", Value: bson.D{
-				{Key: "if", Value: bson.D{
-					{Key: "$isArray", Value: "$customer"},
-				}},
-				{Key: "then", Value: "$customer.name"},
-				{Key: "else", Value: ""},
-			}}}},
+		{Key: "customer", Value: "$customer.name"},
 	}}}
 	pipeline := bson.A{matchState, lookupStage, unwindStage, projectStage, skipStage, limitStage}
 	if !common.IsEmpty(searchPipeline.Search) && len(searchPipeline.SearchPipeline) > 0 {
@@ -76,6 +70,7 @@ func GetProjectService(input model.GetProjectInput, searchPipeline model.SearchP
 	if err != nil {
 		return nil, err
 	}
+	coll.Disconnect(context.Background())
 	return result, nil
 }
 
@@ -101,6 +96,7 @@ func GetProjectCountService(searchPipeline model.SearchPipeline) (int32, error) 
 	if err != nil {
 		return 0, err
 	}
+	coll.Disconnect(context.Background())
 	return result[0]["count"].(int32), nil
 }
 
@@ -123,8 +119,109 @@ func GetProjectByIDService(input model.GetProjectByIDInput) (model.GetProjectByI
 	if len(result) == 0 {
 		return model.GetProjectByIDResult{}, exception.NotFoundError{Message: "Project not found"}
 	}
-
+	coll.Disconnect(context.Background())
 	return result[0], nil
+}
+
+func AddProjectService(input model.AddProjectInput) (primitive.ObjectID, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+	ref := coll.Database("PBD").Collection("works")
+	//exclude images
+	addInput := bson.D{}
+	for i := 0; i < reflect.ValueOf(input).NumField(); i++ {
+		if reflect.ValueOf(input).Type().Field(i).Name != "Images" {
+			//append json
+			addInput = append(addInput, bson.E{Key: reflect.ValueOf(input).Type().Field(i).Tag.Get("json"), Value: reflect.ValueOf(input).Field(i).Interface()})
+		}
+	}
+	insertResult, err := ref.InsertOne(context.Background(), addInput)
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+	coll.Disconnect(context.Background())
+	return insertResult.InsertedID.(primitive.ObjectID), nil
+}
+
+func UpdateProjectService(input model.UpdateProjectInput, projectID string) error {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return err
+	}
+	ref := coll.Database("PBD").Collection("works")
+	projectObjectID, _ := primitive.ObjectIDFromHex(projectID)
+
+	update := bson.D{}
+	//reflect input that is not empty
+	inputRef := reflect.ValueOf(input)
+	for i := 0; i < inputRef.NumField(); i++ {
+		if !common.IsEmpty(inputRef.Field(i).Interface()) {
+			update = append(update, bson.E{Key: inputRef.Type().Field(i).Tag.Get("json"), Value: inputRef.Field(i).Interface()})
+		}
+	}
+	_, err = ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: projectObjectID}}, bson.D{{Key: "$set", Value: update}})
+	if err != nil {
+		return err
+	}
+	coll.Disconnect(context.Background())
+	return nil
+}
+
+func DeleteProjectService(projectID string) error {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return err
+	}
+	ref := coll.Database("PBD").Collection("works")
+	projectObjectID, _ := primitive.ObjectIDFromHex(projectID)
+	_, err = ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: projectObjectID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
+	if err != nil {
+		return err
+	}
+	coll.Disconnect(context.Background())
+	return nil
+}
+
+func GetCustomerNameService() ([]model.GetCustomerNameResult, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return nil, err
+	}
+	ref := coll.Database("PBD").Collection("customers")
+	projectStage := bson.D{{Key: "$project", Value: bson.D{
+		{Key: "_id", Value: 1},
+		{Key: "name", Value: 1},
+	}}}
+	pipeline := bson.A{projectStage}
+	var result []model.GetCustomerNameResult
+	cursor, err := ref.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return nil, err
+	}
+	err = cursor.All(context.Background(), &result)
+	if err != nil {
+		return nil, err
+	}
+	coll.Disconnect(context.Background())
+	return result, nil
+
+}
+
+func ForceDeleteProjectService(projectID string) error {
+	coll, err := configuration.ConnectToMongoDB()
+	if err != nil {
+		return err
+	}
+	ref := coll.Database("PBD").Collection("works")
+	projectObjectID, _ := primitive.ObjectIDFromHex(projectID)
+	_, err = ref.DeleteOne(context.Background(), bson.D{{Key: "_id", Value: projectObjectID}})
+	if err != nil {
+		return err
+	}
+	coll.Disconnect(context.Background())
+	return nil
 }
 
 func getPipelineGetProjectByID(projectID string) bson.A {
@@ -140,7 +237,7 @@ func getPipelineGetProjectByID(projectID string) bson.A {
 		{Key: "path", Value: "$customer"},
 	}}}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
-		{Key: "projectID", Value: "$_id"},
+		{Key: "workID", Value: "$_id"},
 		{Key: "title", Value: 1},
 		{Key: "date", Value: bson.D{
 			{Key: "$toDate", Value: "$date"},

@@ -21,5 +21,29 @@ func ProjectRoute(route fiber.Router) {
 			Name:      "CanEdit",
 		})
 	}, controller.GetProjectByIDController)
+	route.Post("/add", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Project",
+			Name:      "CanEdit",
+		})
+	}, controller.AddProjectController)
+	route.Post("/update", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Project",
+			Name:      "CanEdit",
+		})
+	}, controller.UpdateProjectController)
+	route.Delete("/delete", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Project",
+			Name:      "CanRemove",
+		})
+	}, controller.DeleteProjectController)
+	route.Get("/getCustomerName", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Customer",
+			Name:      "CanView",
+		})
+	}, controller.GetCustomerNameController)
 
 }

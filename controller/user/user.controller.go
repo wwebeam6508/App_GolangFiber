@@ -103,9 +103,6 @@ func GetUserByIDController(c *fiber.Ctx) error {
 
 func AddUserController(c *fiber.Ctx) error {
 	var body model.AddUserInput
-	if common.DenialIfSuperAdmin(body.UserTypeID) {
-		return exception.ErrorHandler(c, exception.UnauthorizedError{Message: "cannot add super admin"})
-	}
 	if err := c.BodyParser(&body); err != nil {
 		return exception.ErrorHandler(c, err)
 	}

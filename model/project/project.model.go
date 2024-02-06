@@ -21,7 +21,7 @@ type SearchPipeline struct {
 }
 
 type GetProjectServiceResult struct {
-	ProjectID primitive.ObjectID `json:"projectID" bson:"projectID"`
+	ProjectID primitive.ObjectID `json:"workID" bson:"workID"`
 	Title     string             `json:"title" bson:"title"`
 	Date      time.Time          `json:"date" bson:"date"`
 	Profit    float64            `json:"profit" bson:"profit"`
@@ -30,11 +30,11 @@ type GetProjectServiceResult struct {
 }
 
 type GetProjectByIDInput struct {
-	ProjectID string `json:"projectID" bson:"projectID" validate:"required"`
+	ProjectID string `json:"workID" bson:"workID" validate:"required"`
 }
 
 type GetProjectByIDResult struct {
-	ProjectID primitive.ObjectID `json:"projectID" bson:"projectID"`
+	ProjectID primitive.ObjectID `json:"workID" bson:"workID"`
 	Title     string             `json:"title" bson:"title"`
 	Date      time.Time          `json:"date" bson:"date"`
 	Profit    float64            `json:"profit" bson:"profit"`
@@ -42,4 +42,37 @@ type GetProjectByIDResult struct {
 	Detail    string             `json:"detail" bson:"detail"`
 	Customer  primitive.ObjectID `json:"customer" bson:"customer"`
 	Images    []string           `json:"images" bson:"images"`
+}
+
+type AddProjectInput struct {
+	Title    string    `json:"title" bson:"title" validate:"required"`
+	Date     time.Time `json:"date" bson:"date" validate:"required"`
+	Profit   float64   `json:"profit" bson:"profit" validate:"required"`
+	DateEnd  time.Time `json:"dateEnd" bson:"dateEnd" validate:"required"`
+	Detail   string    `json:"detail" bson:"detail"`
+	Customer string    `json:"customer" bson:"customer" validate:"required"`
+	Images   []string  `json:"images" bson:"images"`
+}
+
+type UpdateProjectID struct {
+	ProjectID string `json:"workID" bson:"workID" validate:"required"`
+}
+
+type UpdateProjectInput struct {
+	Title    string    `json:"title" bson:"title"`
+	Date     time.Time `json:"date" bson:"date"`
+	Profit   float64   `json:"profit" bson:"profit"`
+	DateEnd  time.Time `json:"dateEnd" bson:"dateEnd"`
+	Detail   string    `json:"detail" bson:"detail"`
+	Customer string    `json:"customer" bson:"customer"`
+	Images   []string  `json:"images" bson:"images"`
+}
+
+type DeleteProjectInput struct {
+	ProjectID string `json:"workID" bson:"workID" validate:"required"`
+}
+
+type GetCustomerNameResult struct {
+	CustomerID primitive.ObjectID `json:"_id" bson:"_id"`
+	Name       string             `json:"name" bson:"name"`
 }

@@ -1,11 +1,18 @@
 package common
 
 import (
+	"PBD_backend_go/configuration"
+	"PBD_backend_go/exception"
+	"context"
+	"encoding/base64"
 	"math"
 	"math/rand"
+	"net/http"
 	"os"
 	"reflect"
+	"strings"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -73,6 +80,57 @@ func EncryptPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func DenialIfSuperAdmin(userTypeID string) bool {
-	return userTypeID == os.Getenv("SUPER_ADMIN_ID")
+func UploadImageToStorage(path string, filename string, image string) (string, error) {
+	//check is image is base64
+	if !strings.Contains(image, "data:image/") {
+		return "", exception.ValidationError{Message: "Invalid image format"}
+	}
+	data, err := base64.StdEncoding.DecodeString(image[strings.IndexByte(image, ',')+1:])
+	if err != nil {
+		return "", err
+	}
+	storage, err := configuration.ConnectToStorage()
+	if err != nil {
+		return "", err
+	}
+	storageBucket := os.Getenv("STORAGEBUCKET")
+	bucket := storage.Bucket(storageBucket)
+	obj := bucket.Object(`` + path + `/` + filename)
+	wc := obj.NewWriter(context.Background())
+	id := uuid.New()
+	wc.ObjectAttrs.Metadata = map[string]string{"firebaseStorageDownloadTokens": id.String()}
+	defer wc.Close()
+
+	// Determine the image type
+	contentType := http.DetectContentType(data)
+	wc.ContentType = contentType
+
+	//get URL after upload
+	if _, err := wc.Write(data); err != nil {
+		return "", err
+	}
+
+	return getPathStorageFromUrl(path, filename, id.String()), nil
+
+}
+func DeleteImageFromStorage(path string, filename string) error {
+	storage, err := configuration.ConnectToStorage()
+	if err != nil {
+		return err
+	}
+	storageBucket := os.Getenv("STORAGEBUCKET")
+	bucket := storage.Bucket(storageBucket)
+	obj := bucket.Object(`` + path + `/` + filename)
+	if err := obj.Delete(context.Background()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func getPathStorageFromUrl(path string, filename string, uidd string) string {
+
+	storageBucket := os.Getenv("STORAGEBUCKET")
+	baseURL := `https://firebasestorage.googleapis.com/v0/b/` + storageBucket + `/o/` + path + `%2F` + filename + `?alt=media` + `&token=` + uidd
+
+	return baseURL
 }
