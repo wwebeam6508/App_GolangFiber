@@ -233,7 +233,7 @@ func GetCustomerNameController(c *fiber.Ctx) error {
 
 func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 	searchPipeline := bson.A{}
-	if search != "%%" && searchFilter != "%%" {
+	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
 		// if searchFilter is "customer" then { "customer.name": { $regex: search, $options: "i" } }
 		if searchFilter == "customer" {
 			searchPipeline = append(searchPipeline, bson.M{"customer.name": bson.M{"$regex": search, "$options": "i"}})
@@ -272,12 +272,6 @@ func getProjectBodyCondition(body model.GetProjectInput) model.GetProjectInput {
 	}
 	if body.SortType == "" {
 		body.SortType = "desc"
-	}
-	if body.Search == "" {
-		body.Search = "%%"
-	}
-	if body.SearchFilter == "" {
-		body.SearchFilter = "%%"
 	}
 	return body
 }

@@ -166,7 +166,7 @@ func DeleteCustomerController(c *fiber.Ctx) error {
 
 func getSearchPipeline(search, searchFilter string) bson.A {
 	pipeline := bson.A{}
-	if search != "%%" && searchFilter != "%%" {
+	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
 		pipeline = append(pipeline, bson.M{searchFilter: bson.M{"$regex": search, "$options": "i"}})
 	}
 	return pipeline
@@ -184,12 +184,6 @@ func getCustomerBodyCondition(body model.GetCustomerInput) model.GetCustomerInpu
 	}
 	if body.SortType == "" {
 		body.SortType = "desc"
-	}
-	if body.Search == "" {
-		body.Search = "%%"
-	}
-	if body.SearchFilter == "" {
-		body.SearchFilter = "%%"
 	}
 	return body
 }

@@ -76,16 +76,17 @@ func GetProjectService(input model.GetProjectInput, searchPipeline model.SearchP
 
 func GetProjectCountService(searchPipeline model.SearchPipeline) (int32, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return 0, err
 	}
 	ref := coll.Database("PBD").Collection("works")
-	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
-	pipeline := bson.A{matchState}
-	if !common.IsEmpty(searchPipeline.Search) {
+	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
+	groupStage := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: nil}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}}
+	pipeline := bson.A{matchStage, groupStage}
+	if searchPipeline.Search != "" {
 		pipeline = append(pipeline, searchPipeline.SearchPipeline...)
 	}
-	groupStage := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: nil}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}}
 	pipeline = append(pipeline, groupStage)
 	var result []bson.M
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
@@ -96,7 +97,10 @@ func GetProjectCountService(searchPipeline model.SearchPipeline) (int32, error) 
 	if err != nil {
 		return 0, err
 	}
-	coll.Disconnect(context.Background())
+
+	if len(result) == 0 {
+		return 0, exception.NotFoundError{Message: "Not found"}
+	}
 	return result[0]["count"].(int32), nil
 }
 
@@ -206,7 +210,6 @@ func GetCustomerNameService() ([]model.GetCustomerNameResult, error) {
 	}
 	coll.Disconnect(context.Background())
 	return result, nil
-
 }
 
 func ForceDeleteProjectService(projectID string) error {

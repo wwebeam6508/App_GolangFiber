@@ -198,7 +198,7 @@ func GetUserTypeNameController(c *fiber.Ctx) error {
 
 func getSearchPipeline(search, searchFilter string) (bson.A, error) {
 	searchPipeline := bson.A{}
-	if search != "%%" && searchFilter != "%%" {
+	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
 		// if searchFilter is "userType" then { "userType.name": { $regex: search, $options: "i" } }
 		if searchFilter == "userType" {
 			searchPipeline = append(searchPipeline, bson.M{"userType.name": bson.M{"$regex": search, "$options": "i"}})
@@ -243,16 +243,6 @@ func getUserBodyCondition(input model.GetUserControllerInput) model.GetUserContr
 	}
 	if input.SortType == "" {
 		result.SortType = "desc"
-	}
-	if input.Search == "" {
-		result.Search = "%%"
-	} else {
-		result.Search = "%" + input.Search + "%" // %input.Search%
-	}
-	if input.SearchFilter == "" {
-		result.SearchFilter = "%%"
-	} else {
-		result.SearchFilter = "%" + input.SearchFilter + "%" // %body.SearchFilter%
 	}
 	return result
 }

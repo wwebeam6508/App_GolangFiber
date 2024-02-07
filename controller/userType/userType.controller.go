@@ -191,7 +191,7 @@ func filterRankGetUserTypeController(c *fiber.Ctx, input model.GetUserTypeInput,
 
 func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 	searchPipeline := bson.A{}
-	if search != "%%" && searchFilter != "%%" {
+	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
 		if searchFilter == "date" {
 			split := strings.Split(search, ",")
 			if len(split) != 2 {
@@ -233,12 +233,6 @@ func getUserTypeBodyCondition(body model.GetUserTypeInput) model.GetUserTypeInpu
 	}
 	if body.SortType == "" {
 		body.SortType = "desc"
-	}
-	if body.Search == "" {
-		body.Search = "%%"
-	}
-	if body.SearchFilter == "" {
-		body.SearchFilter = "%%"
 	}
 	return body
 }
