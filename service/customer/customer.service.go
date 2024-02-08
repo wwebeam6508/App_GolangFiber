@@ -14,6 +14,7 @@ import (
 
 func GetCustomerService(input model.GetCustomerInput, searchPipeline model.SearchPipeline) ([]model.GetCustomerResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +60,7 @@ func GetCustomerService(input model.GetCustomerInput, searchPipeline model.Searc
 
 func GetCustomerCountService(searchPipeline model.SearchPipeline) (int32, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return 0, err
 	}
@@ -84,6 +86,7 @@ func GetCustomerCountService(searchPipeline model.SearchPipeline) (int32, error)
 
 func GetCustomerByIDService(input model.GetCustomerByIDInput) (model.GetCustomerByIDResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return model.GetCustomerByIDResult{}, err
 	}
@@ -122,6 +125,7 @@ func GetCustomerByIDService(input model.GetCustomerByIDInput) (model.GetCustomer
 
 func AddCustomerService(input model.AddCustomerInput) (primitive.ObjectID, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
@@ -142,6 +146,7 @@ func AddCustomerService(input model.AddCustomerInput) (primitive.ObjectID, error
 
 func UpdateCustomerService(input model.UpdateCustomerInput, updateCustomerID model.UpdateCustomerID) error {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return err
 	}
@@ -172,6 +177,7 @@ func UpdateCustomerService(input model.UpdateCustomerInput, updateCustomerID mod
 
 func DeleteCustomerService(input model.DeleteCustomerInput) error {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return err
 	}

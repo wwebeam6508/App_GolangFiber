@@ -14,6 +14,7 @@ import (
 
 func GetProjectService(input model.GetProjectInput, searchPipeline model.SearchPipeline) ([]model.GetProjectServiceResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,6 @@ func GetProjectService(input model.GetProjectInput, searchPipeline model.SearchP
 	if err != nil {
 		return nil, err
 	}
-	coll.Disconnect(context.Background())
 	return result, nil
 }
 
@@ -106,6 +106,7 @@ func GetProjectCountService(searchPipeline model.SearchPipeline) (int32, error) 
 
 func GetProjectByIDService(input model.GetProjectByIDInput) (model.GetProjectByIDResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return model.GetProjectByIDResult{}, err
 	}
@@ -123,12 +124,12 @@ func GetProjectByIDService(input model.GetProjectByIDInput) (model.GetProjectByI
 	if len(result) == 0 {
 		return model.GetProjectByIDResult{}, exception.NotFoundError{Message: "Project not found"}
 	}
-	coll.Disconnect(context.Background())
 	return result[0], nil
 }
 
 func AddProjectService(input model.AddProjectInput) (primitive.ObjectID, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
@@ -145,12 +146,12 @@ func AddProjectService(input model.AddProjectInput) (primitive.ObjectID, error) 
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
-	coll.Disconnect(context.Background())
 	return insertResult.InsertedID.(primitive.ObjectID), nil
 }
 
 func UpdateProjectService(input model.UpdateProjectInput, projectID string) error {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return err
 	}
@@ -169,12 +170,12 @@ func UpdateProjectService(input model.UpdateProjectInput, projectID string) erro
 	if err != nil {
 		return err
 	}
-	coll.Disconnect(context.Background())
 	return nil
 }
 
 func DeleteProjectService(projectID string) error {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return err
 	}
@@ -184,12 +185,12 @@ func DeleteProjectService(projectID string) error {
 	if err != nil {
 		return err
 	}
-	coll.Disconnect(context.Background())
 	return nil
 }
 
 func GetCustomerNameService() ([]model.GetCustomerNameResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -208,12 +209,12 @@ func GetCustomerNameService() ([]model.GetCustomerNameResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	coll.Disconnect(context.Background())
 	return result, nil
 }
 
 func ForceDeleteProjectService(projectID string) error {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return err
 	}
@@ -223,7 +224,6 @@ func ForceDeleteProjectService(projectID string) error {
 	if err != nil {
 		return err
 	}
-	coll.Disconnect(context.Background())
 	return nil
 }
 

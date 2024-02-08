@@ -17,6 +17,7 @@ import (
 
 func GetUserService(input model.GetUserServiceInput, searchPipeline model.SearchPipeline) ([]model.GetUserServiceResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +70,7 @@ func GetUserService(input model.GetUserServiceInput, searchPipeline model.Search
 
 func GetUserByIDService(input model.GetUserByIDInput) (model.GetUserByIDServiceResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return model.GetUserByIDServiceResult{}, err
 	}
@@ -111,6 +113,7 @@ func GetUserByIDService(input model.GetUserByIDInput) (model.GetUserByIDServiceR
 
 func AddUserService(input model.AddUserInput) (primitive.ObjectID, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return primitive.ObjectID{}, err
 	}
@@ -141,8 +144,8 @@ func AddUserService(input model.AddUserInput) (primitive.ObjectID, error) {
 }
 
 func UpdateUserService(input model.UpdateUserInput, id model.UpdateUserID) error {
-
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return err
 	}
@@ -187,6 +190,7 @@ func UpdateUserService(input model.UpdateUserInput, id model.UpdateUserID) error
 func DeleteUserService(input model.DeleteUserInput) error {
 
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return err
 	}
@@ -200,6 +204,7 @@ func DeleteUserService(input model.DeleteUserInput) error {
 
 func GetAllUserCount(searchPipeline model.SearchPipeline) (int32, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return 0, err
 	}
@@ -224,6 +229,7 @@ func GetAllUserCount(searchPipeline model.SearchPipeline) (int32, error) {
 
 func GetUserTypeService() ([]model.GetUserTypeServiceResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return nil, err
 	}

@@ -16,6 +16,7 @@ import (
 
 func GetUserTypeService(input model.GetUserTypeInput, searchPipeline model.SearchPipeline) ([]model.GetUserTypeResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +62,7 @@ func GetUserTypeService(input model.GetUserTypeInput, searchPipeline model.Searc
 
 func GetUserTypeByIDService(input model.GetUserTypeByIDInput) (model.GetUserTypeResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return model.GetUserTypeResult{}, err
 	}
@@ -98,6 +100,7 @@ func GetUserTypeByIDService(input model.GetUserTypeByIDInput) (model.GetUserType
 
 func AddUserTypeService(input model.AddUserTypeInput) (primitive.ObjectID, error) {
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
@@ -124,6 +127,7 @@ func UpdateUserTypeService(input model.UpdateUserTypeInput, id model.UpdateUserT
 		return exception.ValidationError{Message: "userTypeID is empty"}
 	}
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return err
 	}
@@ -158,6 +162,7 @@ func DeleteUserTypeService(id model.DeleteUserTypeID) error {
 		return exception.ValidationError{Message: "userTypeID is empty"}
 	}
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return err
 	}
@@ -180,6 +185,7 @@ func DeleteUserTypeService(id model.DeleteUserTypeID) error {
 func GetAllUserTypeCountService(input model.SearchPipeline) (int32, error) {
 
 	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
 	if err != nil {
 		return 0, err
 	}
