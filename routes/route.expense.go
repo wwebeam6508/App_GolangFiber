@@ -21,17 +21,35 @@ func ExpenseRoute(route fiber.Router) {
 			Name:      "CanEdit",
 		})
 	}, controller.GetExpenseByIDController)
-	route.Post("/addExpense", middleware.Authenication, func(c *fiber.Ctx) error {
+	route.Post("/add", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "Expense",
 			Name:      "CanEdit",
 		})
 	}, controller.AddExpenseController)
-	route.Post("/updateExpense", middleware.Authenication, func(c *fiber.Ctx) error {
+	route.Post("/update", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "Expense",
 			Name:      "CanEdit",
 		})
 	}, controller.UpdateExpenseController)
+	route.Delete("/delete", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Expense",
+			Name:      "CanRemove",
+		})
+	}, controller.DeleteExpenseController)
+	route.Get("/getProjectTitle", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Expense",
+			Name:      "CanEdit",
+		})
+	}, controller.GetWorkTitleController)
+	route.Get("/getSellerName", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Expense",
+			Name:      "CanEdit",
+		})
+	}, controller.GetCustomerNameController)
 
 }

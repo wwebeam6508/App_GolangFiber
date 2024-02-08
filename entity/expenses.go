@@ -12,13 +12,13 @@ type Ref struct {
 }
 
 type List struct {
-	ID    primitive.ObjectID `bson:"_id" json:"id"`
+	ID    primitive.ObjectID `bson:"id" json:"id"`
 	Price float64            `bson:"price" json:"price"`
 	Title string             `bson:"title" json:"title"`
 }
 
 type Expense struct {
-	ID          string    `bson:"_id" json:"id"`
+	ID          string    `bson:"id" json:"id"`
 	Date        time.Time `bson:"date" json:"date"`
 	WorkRef     Ref       `bson:"workRef" json:"workRef"`
 	Lists       []List    `bson:"lists" json:"lists"`

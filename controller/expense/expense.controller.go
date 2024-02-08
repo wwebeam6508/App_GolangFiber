@@ -148,6 +148,50 @@ func UpdateExpenseController(c *fiber.Ctx) error {
 	})
 }
 
+func DeleteExpenseController(c *fiber.Ctx) error {
+	body := model.DeleteExpenseInput{}
+	if err := c.QueryParser(&body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	validate := validator.New()
+	if err := validate.Struct(body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	err := service.DeleleExpenseService(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(200).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    nil,
+	})
+}
+
+func GetWorkTitleController(c *fiber.Ctx) error {
+	workTitle, err := service.GetWorkTitleService()
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(200).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    workTitle,
+	})
+}
+
+func GetCustomerNameController(c *fiber.Ctx) error {
+	customerName, err := service.GetCustomerNameService()
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(200).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    customerName,
+	})
+}
+
 func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 	pipeline := bson.A{}
 	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
@@ -198,7 +242,6 @@ func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 }
 
 func getExpenseBodyCondition(query model.GetExpenseInput) model.GetExpenseInput {
-
 	if query.Page == 0 {
 		query.Page = 1
 	}

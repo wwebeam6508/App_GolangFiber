@@ -137,6 +137,73 @@ func UpdateExpenseService(input model.UpdateExpenseInput, expenseID string) erro
 	return nil
 }
 
+func DeleleExpenseService(input model.DeleteExpenseInput) error {
+	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
+	if err != nil {
+		return err
+	}
+	ref := coll.Database("PBD").Collection("expenses")
+	expenseIDObjectID, _ := primitive.ObjectIDFromHex(input.ExpenseID)
+	filter := bson.D{{Key: "_id", Value: expenseIDObjectID}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}}
+	_, err = ref.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetWorkTitleService() ([]model.GetWorkTitle, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	ref := coll.Database("PBD").Collection("works")
+	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: 1}}}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{
+		{Key: "title", Value: 1},
+		{Key: "id", Value: "$_id"},
+	}}}
+	pipeline := bson.A{matchStage, projectStage}
+	cursor, err := ref.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return nil, err
+	}
+	var result []model.GetWorkTitle
+	err = cursor.All(context.Background(), &result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func GetCustomerNameService() ([]model.GetCustomerName, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	ref := coll.Database("PBD").Collection("customers")
+	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: 1}}}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{
+		{Key: "name", Value: 1},
+		{Key: "id", Value: "$_id"},
+	}}}
+	pipeline := bson.A{matchStage, projectStage}
+	cursor, err := ref.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return nil, err
+	}
+	var result []model.GetCustomerName
+	err = cursor.All(context.Background(), &result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func getPipelineGetExpense(input model.GetExpenseInput, searchPipeline model.SearchPipeline) bson.A {
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: 1}}}}
 	if input.Page > 0 {

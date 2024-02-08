@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type GetExpenseInput struct {
@@ -73,4 +74,18 @@ type UpdateExpenseInput struct {
 
 type RemoveList struct {
 	ID string `json:"_id" bson:"_id"`
+}
+
+type DeleteExpenseInput struct {
+	ExpenseID string `json:"expenseID" bson:"expenseID" validate:"required"`
+}
+
+type GetWorkTitle struct {
+	Title string             `json:"title" bson:"title"`
+	ID    primitive.ObjectID `json:"id" bson:"id"`
+}
+
+type GetCustomerName struct {
+	Name string             `json:"name" bson:"name"`
+	ID   primitive.ObjectID `json:"id" bson:"id"`
 }
