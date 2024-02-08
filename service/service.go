@@ -5,6 +5,7 @@ import (
 	"PBD_backend_go/exception"
 	"PBD_backend_go/model"
 	"context"
+	"os"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,7 +16,7 @@ func GetUserRankByUserIDService(input model.GetUserTypeByUserIDInput) (model.Get
 	if err != nil {
 		return model.GetUserTypeByUserIDResult{}, err
 	}
-	ref := coll.Database("PBD").Collection("users")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users")
 	userIDObjectID, err := primitive.ObjectIDFromHex(input.UserID)
 	if err != nil {
 		return model.GetUserTypeByUserIDResult{}, exception.ValidationError{Message: "invalid userID"}
@@ -55,7 +56,7 @@ func GetUserRankByUserTypeIDService(input model.GetUserRankByUserTypeIDInput) (m
 	if err != nil {
 		return model.GetUserRankByUserTypeIDResult{}, err
 	}
-	ref := coll.Database("PBD").Collection("userType")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("userType")
 	userTypeIDObjectID, err := primitive.ObjectIDFromHex(input.UserTypeID)
 	if err != nil {
 		return model.GetUserRankByUserTypeIDResult{}, exception.ValidationError{Message: "invalid userTypeID"}

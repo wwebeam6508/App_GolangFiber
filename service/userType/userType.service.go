@@ -7,6 +7,7 @@ import (
 	model "PBD_backend_go/model/userType"
 	"context"
 	"errors"
+	"os"
 	"reflect"
 	"time"
 
@@ -20,7 +21,7 @@ func GetUserTypeService(input model.GetUserTypeInput, searchPipeline model.Searc
 	if err != nil {
 		return nil, err
 	}
-	ref := coll.Database("PBD").Collection("userType")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("userType")
 	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	if input.Page > 0 {
 		input.Page = input.Page - 1
@@ -67,7 +68,7 @@ func GetUserTypeByIDService(input model.GetUserTypeByIDInput) (model.GetUserType
 		return model.GetUserTypeResult{}, err
 	}
 
-	ref := coll.Database("PBD").Collection("userType")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("userType")
 	//aggregate
 	userTypeIDObjectID, err := primitive.ObjectIDFromHex(input.UserTypeID)
 	if err != nil {
@@ -104,7 +105,7 @@ func AddUserTypeService(input model.AddUserTypeInput) (primitive.ObjectID, error
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
-	ref := coll.Database("PBD").Collection("userType")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("userType")
 	//insert
 	insertResult, err := ref.InsertOne(context.Background(), bson.D{
 		{Key: "name", Value: input.Name},
@@ -131,7 +132,7 @@ func UpdateUserTypeService(input model.UpdateUserTypeInput, id model.UpdateUserT
 	if err != nil {
 		return err
 	}
-	ref := coll.Database("PBD").Collection("userType")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("userType")
 	//update
 	userTypeIDObjectID, err := primitive.ObjectIDFromHex(id.UserTypeID)
 	if err != nil {
@@ -166,7 +167,7 @@ func DeleteUserTypeService(id model.DeleteUserTypeID) error {
 	if err != nil {
 		return err
 	}
-	ref := coll.Database("PBD").Collection("userType")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("userType")
 	//delete
 	userTypeIDObjectID, err := primitive.ObjectIDFromHex(id.UserTypeID)
 	if err != nil {
@@ -189,7 +190,7 @@ func GetAllUserTypeCountService(input model.SearchPipeline) (int32, error) {
 	if err != nil {
 		return 0, err
 	}
-	ref := coll.Database("PBD").Collection("userType")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("userType")
 	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	pipeline := bson.A{matchState}
 	if input.Search != "" {

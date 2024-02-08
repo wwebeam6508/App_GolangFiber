@@ -6,6 +6,7 @@ import (
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/project"
 	"context"
+	"os"
 	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -18,7 +19,7 @@ func GetProjectService(input model.GetProjectInput, searchPipeline model.SearchP
 	if err != nil {
 		return nil, err
 	}
-	ref := coll.Database("PBD").Collection("works")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	if input.Page > 0 {
 		input.Page = input.Page - 1
@@ -80,7 +81,7 @@ func GetProjectCountService(searchPipeline model.SearchPipeline) (int32, error) 
 	if err != nil {
 		return 0, err
 	}
-	ref := coll.Database("PBD").Collection("works")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	groupStage := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: nil}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}}
 	pipeline := bson.A{matchStage, groupStage}
@@ -110,7 +111,7 @@ func GetProjectByIDService(input model.GetProjectByIDInput) (model.GetProjectByI
 	if err != nil {
 		return model.GetProjectByIDResult{}, err
 	}
-	ref := coll.Database("PBD").Collection("works")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	pipeline := getPipelineGetProjectByID(input.ProjectID)
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
 	if err != nil {
@@ -133,7 +134,7 @@ func AddProjectService(input model.AddProjectInput) (primitive.ObjectID, error) 
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
-	ref := coll.Database("PBD").Collection("works")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	//exclude images
 	addInput := bson.D{}
 	for i := 0; i < reflect.ValueOf(input).NumField(); i++ {
@@ -155,7 +156,7 @@ func UpdateProjectService(input model.UpdateProjectInput, projectID string) erro
 	if err != nil {
 		return err
 	}
-	ref := coll.Database("PBD").Collection("works")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	projectObjectID, _ := primitive.ObjectIDFromHex(projectID)
 
 	update := bson.D{}
@@ -179,7 +180,7 @@ func DeleteProjectService(projectID string) error {
 	if err != nil {
 		return err
 	}
-	ref := coll.Database("PBD").Collection("works")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	projectObjectID, _ := primitive.ObjectIDFromHex(projectID)
 	_, err = ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: projectObjectID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
 	if err != nil {
@@ -194,7 +195,7 @@ func GetCustomerNameService() ([]model.GetCustomerNameResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	ref := coll.Database("PBD").Collection("customers")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("customers")
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
 		{Key: "_id", Value: 1},
 		{Key: "name", Value: 1},
@@ -218,7 +219,7 @@ func ForceDeleteProjectService(projectID string) error {
 	if err != nil {
 		return err
 	}
-	ref := coll.Database("PBD").Collection("works")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	projectObjectID, _ := primitive.ObjectIDFromHex(projectID)
 	_, err = ref.DeleteOne(context.Background(), bson.D{{Key: "_id", Value: projectObjectID}})
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/customer"
 	"context"
+	"os"
 	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -18,7 +19,7 @@ func GetCustomerService(input model.GetCustomerInput, searchPipeline model.Searc
 	if err != nil {
 		return nil, err
 	}
-	ref := coll.Database("PBD").Collection("customers")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("customers")
 	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	if input.Page > 0 {
 		input.Page = input.Page - 1
@@ -64,7 +65,7 @@ func GetCustomerCountService(searchPipeline model.SearchPipeline) (int32, error)
 	if err != nil {
 		return 0, err
 	}
-	ref := coll.Database("PBD").Collection("customers")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("customers")
 	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	pipeline := bson.A{matchState}
 	if searchPipeline.Search != "" {
@@ -94,7 +95,7 @@ func GetCustomerByIDService(input model.GetCustomerByIDInput) (model.GetCustomer
 	if err != nil {
 		return model.GetCustomerByIDResult{}, exception.ValidationError{Message: "invalid customerID"}
 	}
-	ref := coll.Database("PBD").Collection("customers")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("customers")
 	// aggregate
 	matchState := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: customerIDObjectID}, {Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
@@ -129,7 +130,7 @@ func AddCustomerService(input model.AddCustomerInput) (primitive.ObjectID, error
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
-	ref := coll.Database("PBD").Collection("customers")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("customers")
 	insertResult, err := ref.InsertOne(context.Background(), bson.D{
 		{Key: "name", Value: input.Name},
 		{Key: "address", Value: input.Address},
@@ -150,7 +151,7 @@ func UpdateCustomerService(input model.UpdateCustomerInput, updateCustomerID mod
 	if err != nil {
 		return err
 	}
-	ref := coll.Database("PBD").Collection("customers")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("customers")
 	customerIDObjectID, err := primitive.ObjectIDFromHex(updateCustomerID.CustomerID)
 	if err != nil {
 		return exception.ValidationError{Message: "invalid customerID"}
@@ -181,7 +182,7 @@ func DeleteCustomerService(input model.DeleteCustomerInput) error {
 	if err != nil {
 		return err
 	}
-	ref := coll.Database("PBD").Collection("customers")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("customers")
 	customerIDObjectID, err := primitive.ObjectIDFromHex(input.CustomerID)
 	if err != nil {
 		return exception.ValidationError{Message: "invalid customerID"}

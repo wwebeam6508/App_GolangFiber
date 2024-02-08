@@ -7,6 +7,7 @@ import (
 	model "PBD_backend_go/model/expense"
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,7 +20,7 @@ func GetExpenseService(input model.GetExpenseInput, searchPipeline model.SearchP
 	if err != nil {
 		return nil, err
 	}
-	ref := coll.Database("PBD").Collection("expenses")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("expenses")
 
 	result = []model.GetExpenseServiceResult{}
 	cursor, err := ref.Aggregate(context.Background(), getPipelineGetExpense(input, searchPipeline))
@@ -39,7 +40,7 @@ func GetExpenseByIDService(input model.GetExpenseByIDInput) (model.GetExpenseByI
 	if err != nil {
 		return model.GetExpenseByIDResult{}, err
 	}
-	ref := coll.Database("PBD").Collection("expenses")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("expenses")
 	pipeline := getPipelineGetExpenseByID(input)
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
 	if err != nil {
@@ -62,7 +63,7 @@ func AddExpenseService(input model.AddExpenseInput) (primitive.ObjectID, error) 
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
-	ref := coll.Database("PBD").Collection("expenses")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("expenses")
 	// add status
 	input.Status = 1
 
@@ -82,7 +83,7 @@ func UpdateExpenseService(input model.UpdateExpenseInput, expenseID string) erro
 	if err != nil {
 		return err
 	}
-	ref := coll.Database("PBD").Collection("expenses")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("expenses")
 	expenseIDObjectID, _ := primitive.ObjectIDFromHex(expenseID)
 
 	//check input is empty or not
@@ -143,7 +144,7 @@ func DeleleExpenseService(input model.DeleteExpenseInput) error {
 	if err != nil {
 		return err
 	}
-	ref := coll.Database("PBD").Collection("expenses")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("expenses")
 	expenseIDObjectID, _ := primitive.ObjectIDFromHex(input.ExpenseID)
 	filter := bson.D{{Key: "_id", Value: expenseIDObjectID}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}}
@@ -160,7 +161,7 @@ func GetWorkTitleService() ([]model.GetWorkTitle, error) {
 	if err != nil {
 		return nil, err
 	}
-	ref := coll.Database("PBD").Collection("works")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: 1}}}}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
 		{Key: "title", Value: 1},
@@ -185,7 +186,7 @@ func GetCustomerNameService() ([]model.GetCustomerName, error) {
 	if err != nil {
 		return nil, err
 	}
-	ref := coll.Database("PBD").Collection("customers")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("customers")
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: 1}}}}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
 		{Key: "name", Value: 1},
@@ -314,7 +315,7 @@ func GetExpenseCountService(searchPipeline model.SearchPipeline) (int32, error) 
 	if err != nil {
 		return 0, err
 	}
-	ref := coll.Database("PBD").Collection("expenses")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("expenses")
 
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	groupStage := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: nil}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}}

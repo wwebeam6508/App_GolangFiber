@@ -7,6 +7,7 @@ import (
 	model "PBD_backend_go/model/user"
 	"context"
 	"errors"
+	"os"
 	"reflect"
 	"time"
 
@@ -21,7 +22,7 @@ func GetUserService(input model.GetUserServiceInput, searchPipeline model.Search
 	if err != nil {
 		return nil, err
 	}
-	ref := coll.Database("PBD").Collection("users")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users")
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	if input.Page > 0 {
 		input.Page = input.Page - 1
@@ -78,7 +79,7 @@ func GetUserByIDService(input model.GetUserByIDInput) (model.GetUserByIDServiceR
 	if err != nil {
 		return model.GetUserByIDServiceResult{}, exception.ValidationError{Message: "invalid userID"}
 	}
-	ref := coll.Database("PBD").Collection("users")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users")
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	addFieldsStage := bson.D{{Key: "$addFields", Value: bson.D{{Key: "userTypeID", Value: bson.D{{Key: "$toObjectId", Value: "$userTypeID.$id"}}}}}}
 	lookupStage := bson.D{{Key: "$lookup", Value: bson.D{
@@ -125,7 +126,7 @@ func AddUserService(input model.AddUserInput) (primitive.ObjectID, error) {
 	if err != nil {
 		return primitive.ObjectID{}, err
 	}
-	ref := coll.Database("PBD").Collection("users")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users")
 	ires, err := ref.InsertOne(context.Background(), bson.D{
 		{Key: "username", Value: input.Username},
 		{Key: "password", Value: password},
@@ -183,7 +184,7 @@ func UpdateUserService(input model.UpdateUserInput, id model.UpdateUserID) error
 	if err != nil {
 		return exception.ValidationError{Message: "invalid userID"}
 	}
-	coll.Database("PBD").Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: updateData}})
+	coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: updateData}})
 	return nil
 }
 
@@ -198,7 +199,7 @@ func DeleteUserService(input model.DeleteUserInput) error {
 	if err != nil {
 		return exception.ValidationError{Message: "invalid userID"}
 	}
-	coll.Database("PBD").Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
+	coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
 	return nil
 }
 
@@ -208,7 +209,7 @@ func GetAllUserCount(searchPipeline model.SearchPipeline) (int32, error) {
 	if err != nil {
 		return 0, err
 	}
-	ref := coll.Database("PBD").Collection("users")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users")
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	groupStage := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: nil}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}}
 	pipeline := bson.A{matchStage, groupStage}
@@ -233,7 +234,7 @@ func GetUserTypeService() ([]model.GetUserTypeServiceResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	ref := coll.Database("PBD").Collection("userType")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("userType")
 	//aggregate
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{

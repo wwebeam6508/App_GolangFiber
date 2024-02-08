@@ -6,6 +6,7 @@ import (
 	model "PBD_backend_go/model"
 	service "PBD_backend_go/service/auth"
 	"context"
+	"os"
 	"reflect"
 	"strings"
 
@@ -47,7 +48,7 @@ func checkPermissionByUserID(userID string, input model.PermissionInput) (bool, 
 	if err != nil {
 		return false, err
 	}
-	ref := coll.Database("PBD").Collection("users")
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users")
 	userIDObjectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return false, err
