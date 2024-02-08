@@ -15,4 +15,23 @@ func ExpenseRoute(route fiber.Router) {
 			Name:      "CanView",
 		})
 	}, controller.GetExpenseController)
+	route.Get("/getByID", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Expense",
+			Name:      "CanEdit",
+		})
+	}, controller.GetExpenseByIDController)
+	route.Post("/addExpense", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Expense",
+			Name:      "CanEdit",
+		})
+	}, controller.AddExpenseController)
+	route.Post("/updateExpense", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Expense",
+			Name:      "CanEdit",
+		})
+	}, controller.UpdateExpenseController)
+
 }

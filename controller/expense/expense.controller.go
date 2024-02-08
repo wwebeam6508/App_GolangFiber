@@ -80,6 +80,74 @@ func GetExpenseController(c *fiber.Ctx) error {
 	})
 }
 
+func GetExpenseByIDController(c *fiber.Ctx) error {
+	query := model.GetExpenseByIDInput{}
+	if err := c.QueryParser(&query); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	validate := validator.New()
+	if err := validate.Struct(query); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	expense, err := service.GetExpenseByIDService(query)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(200).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    expense,
+	})
+}
+
+func AddExpenseController(c *fiber.Ctx) error {
+	body := model.AddExpenseInput{}
+	if err := c.BodyParser(&body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	validate := validator.New()
+	if err := validate.Struct(body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	id, err := service.AddExpenseService(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(200).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    id,
+	})
+}
+
+func UpdateExpenseController(c *fiber.Ctx) error {
+	query := model.UpdateExpenseID{}
+	if err := c.QueryParser(&query); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	validate := validator.New()
+	if err := validate.Struct(query); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+
+	body := model.UpdateExpenseInput{}
+	if err := c.BodyParser(&body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	if err := validate.Struct(body); err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	err := service.UpdateExpenseService(body, query.ExpenseID)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(200).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    nil,
+	})
+}
+
 func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 	pipeline := bson.A{}
 	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
