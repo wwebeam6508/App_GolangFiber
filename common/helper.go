@@ -134,3 +134,12 @@ func getPathStorageFromUrl(path string, filename string, uidd string) string {
 
 	return baseURL
 }
+
+func Contains(arr []int, x int) bool {
+	for _, n := range arr {
+		if x == n {
+			return true
+		}
+	}
+	return false
+}
