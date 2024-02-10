@@ -19,9 +19,6 @@ func TestDashboard(c *fiber.Ctx) error {
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
-	res, err := service.GetTotalEarn(query.Year)
-	if err != nil {
-		return exception.ErrorHandler(c, err)
-	}
+	res, err := service.GetYearsReport()
 	return c.JSON(res)
 }

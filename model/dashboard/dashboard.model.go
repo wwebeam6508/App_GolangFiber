@@ -11,7 +11,21 @@ type WorkResult struct {
 	} `json:"_id" bson:"_id"`
 	Earn float64 `json:"earn" bson:"earn"`
 }
+type WorkYearReportResult struct {
+	ID struct {
+		Month int `json:"month" bson:"month"`
+		Year  int `json:"year" bson:"year"`
+	} `json:"_id" bson:"_id"`
+	TotalEarn float64 `json:"totalEarn" bson:"totalEarn"`
+}
 
+type ExpenseYearReportResult struct {
+	ID struct {
+		Month int `json:"month" bson:"month"`
+		Year  int `json:"year" bson:"year"`
+	} `json:"_id" bson:"_id"`
+	TotalExpense float64 `json:"totalExpense" bson:"totalExpense"`
+}
 type ExpenseResult struct {
 	ID struct {
 		Month int `json:"month" bson:"month"`
@@ -47,9 +61,9 @@ type GetTotalWorkResult struct {
 }
 
 type GetYearReportResult struct {
-	Year         int     `json:"year" bson:"year"`
-	TotalEarn    float64 `json:"totalEarn" bson:"totalEarn"`
-	TotalExpense float64 `json:"totalExpense" bson:"totalExpense"`
+	Year         int   `json:"year" bson:"year"`
+	TotalEarn    int32 `json:"totalEarn" bson:"totalEarn"`
+	TotalExpense int32 `json:"totalExpense" bson:"totalExpense"`
 }
 
 type GetWorkCustomerResult struct {
