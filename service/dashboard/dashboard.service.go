@@ -5,7 +5,6 @@ import (
 	"PBD_backend_go/configuration"
 	model "PBD_backend_go/model/dashboard"
 	"context"
-	"fmt"
 	"math"
 	"os"
 	"time"
@@ -151,7 +150,7 @@ func GetTotalExpense(year *int) (*int32, error) {
 	if expenseCursor.Next(context.Background()) {
 		expenseCursor.Decode(&totalExpense)
 	}
-	expense := totalExpense["totalExpense"].(int32)
+	expense := int32(totalExpense["totalExpense"].(float64))
 	return &expense, nil
 }
 
@@ -351,7 +350,6 @@ func GetWorkCustomer() (*model.GetWorkCustomerResult, error) {
 }
 
 func getWorkEarn(year int, workRef *mongo.Collection) (*[]model.WorkResult, error) {
-
 	pipelineWork := bson.A{
 		//match status = 1
 		bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: 1}}}},
@@ -378,7 +376,6 @@ func getWorkEarn(year int, workRef *mongo.Collection) (*[]model.WorkResult, erro
 	if err = workCursor.All(context.Background(), &workResult); err != nil {
 		return nil, err
 	}
-	fmt.Println("workResult", workResult)
 	return &workResult, nil
 }
 
