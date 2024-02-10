@@ -1,11 +1,11 @@
 package controller
 
 import (
+	"PBD_backend_go/common"
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/dashboard"
 	service "PBD_backend_go/service/dashboard"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -15,12 +15,11 @@ func TestDashboard(c *fiber.Ctx) error {
 		return exception.ErrorHandler(c, err)
 	}
 
-	validate := validator.New()
-	err := validate.Struct(query)
+	err := common.Validate(query)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
-	res, err := service.GetSpentAndEarnEachYear(query.Year)
+	res, err := service.GetTotalEarn(query.Year)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
