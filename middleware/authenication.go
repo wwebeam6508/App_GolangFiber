@@ -18,7 +18,7 @@ func Authenication(c *fiber.Ctx) error {
 	//call verify jwt
 	_, err := service.VerifyJWT(token)
 	if err != nil {
-		return exception.ErrorHandler(c, err)
+		return exception.ErrorHandler(c, exception.UnauthorizedError{Message: "invalid token"})
 	}
 	return c.Next()
 }

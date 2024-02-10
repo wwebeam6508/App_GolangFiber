@@ -61,6 +61,7 @@ type AddExpenseInput struct {
 type UpdateExpenseID struct {
 	ExpenseID string `json:"expenseID" bson:"expenseID" validate:"required"`
 }
+
 type UpdateExpenseInput struct {
 	Title       string        `json:"title" bson:"title"`
 	Date        time.Time     `json:"date" bson:"date"`

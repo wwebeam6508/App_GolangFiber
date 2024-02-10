@@ -17,9 +17,7 @@ import (
 )
 
 func GetExpenseController(c *fiber.Ctx) error {
-
 	query := model.GetExpenseInput{}
-
 	if err := c.QueryParser(&query); err != nil {
 		return exception.ErrorHandler(c, err)
 	}

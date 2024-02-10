@@ -46,6 +46,15 @@ func ErrorHandler(ctx *fiber.Ctx, err error) error {
 		})
 	}
 
+	_, accessDenialError := err.(AccessDenialError)
+	if accessDenialError {
+		return ctx.Status(fiber.StatusForbidden).JSON(commonentity.GeneralResponse{
+			Code:    403,
+			Message: "Access Denial",
+			Data:    err.Error(),
+		})
+	}
+
 	return ctx.Status(fiber.StatusInternalServerError).JSON(commonentity.GeneralResponse{
 		Code:    500,
 		Message: "General Error",
@@ -75,4 +84,12 @@ type NotFoundError struct {
 
 func (notFoundError NotFoundError) Error() string {
 	return notFoundError.Message
+}
+
+type AccessDenialError struct {
+	Message string
+}
+
+func (accessDenialError AccessDenialError) Error() string {
+	return accessDenialError.Message
 }

@@ -172,7 +172,7 @@ func filterRankGetUserTypeController(c *fiber.Ctx, input model.GetUserTypeInput,
 	rank := userData["userType"].(map[string]interface{})["rank"].(float64)
 	rankInt32 := int32(rank)
 	if rankInt32 == 0 {
-		return nil, exception.UnauthorizedError{Message: "your rank has been disabled"}
+		return nil, exception.ValidationError{Message: "your rank has been disabled"}
 	}
 	//check rank in result show only rank lower than user rank
 	var resultFilter []model.GetUserTypeResult

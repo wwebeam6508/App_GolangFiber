@@ -73,7 +73,7 @@ func againistOther(userData map[string]interface{}, userID string) error {
 		return err
 	}
 	if selfRank.Rank >= rank.Rank {
-		return exception.UnauthorizedError{Message: "cannot change rank higher than or equal to your rank"}
+		return exception.ValidationError{Message: "cannot change rank higher than or equal to your rank"}
 	}
 
 	return nil
@@ -96,7 +96,7 @@ func againistOtherType(userData map[string]interface{}, userTypeID string) error
 		return err
 	}
 	if selfRank.Rank >= rank.Rank {
-		return exception.UnauthorizedError{Message: "cannot access or change data rank higher than or equal to your rank"}
+		return exception.ValidationError{Message: "cannot access or change data rank higher than or equal to your rank"}
 	}
 
 	return nil
@@ -110,7 +110,7 @@ func againistOtherRank(userData map[string]interface{}, rank int32) error {
 		return err
 	}
 	if selfRank.Rank >= rank {
-		return exception.UnauthorizedError{Message: "cannot access or change data rank higher than or equal to your rank"}
+		return exception.ValidationError{Message: "cannot access or change data rank higher than or equal to your rank"}
 	}
 	return nil
 }

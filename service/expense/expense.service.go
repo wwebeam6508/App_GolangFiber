@@ -6,7 +6,6 @@ import (
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/expense"
 	"context"
-	"fmt"
 	"os"
 	"reflect"
 
@@ -94,7 +93,13 @@ func UpdateExpenseService(input model.UpdateExpenseInput, expenseID string) erro
 			if reflect.ValueOf(input).Type().Field(i).Name == "AddLists" || reflect.ValueOf(input).Type().Field(i).Name == "RemoveLists" {
 				continue
 			}
+			if reflect.ValueOf(input).Type().Field(i).Name == "WorkRef" || reflect.ValueOf(input).Type().Field(i).Name == "CustomerRef" {
+				objectID, _ := primitive.ObjectIDFromHex(reflect.ValueOf(input).Field(i).Interface().(string))
+				updateInput = append(updateInput, bson.E{Key: reflect.ValueOf(input).Type().Field(i).Tag.Get("json"), Value: bson.D{{Key: "$ref", Value: reflect.ValueOf(input).Type().Field(i).Tag.Get("json")}, {Key: "$id", Value: objectID}}})
+				continue
+			}
 			updateInput = append(updateInput, bson.E{Key: reflect.ValueOf(input).Type().Field(i).Tag.Get("json"), Value: reflect.ValueOf(input).Field(i).Interface()})
+			continue
 		}
 	}
 
@@ -127,7 +132,6 @@ func UpdateExpenseService(input model.UpdateExpenseInput, expenseID string) erro
 			RemoveListsID, _ := primitive.ObjectIDFromHex(input.RemoveLists[i].ID)
 			removeListID = append(removeListID, RemoveListsID)
 		}
-		fmt.Println(removeListID)
 		//remove removeLists from lists
 		updateRemoveLists := bson.D{{Key: "$pull", Value: bson.D{{Key: "lists", Value: bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: removeListID}}}}}}}}
 		_, err = ref.UpdateOne(context.Background(), filter, updateRemoveLists)
@@ -278,12 +282,16 @@ func getPipelineGetExpenseByID(input model.GetExpenseByIDInput) bson.A {
 		{Key: "foreignField", Value: "_id"},
 		{Key: "as", Value: "workRef"},
 	}}}
+	// unwind stage allow empty array
+	unwindStage := bson.D{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$workRef"}, {Key: "preserveNullAndEmptyArrays", Value: true}}}}
 	lookupStageCustomer := bson.D{{Key: "$lookup", Value: bson.D{
 		{Key: "from", Value: "customers"},
 		{Key: "localField", Value: "customerRef.$id"},
 		{Key: "foreignField", Value: "_id"},
 		{Key: "as", Value: "customerRef"},
 	}}}
+	// unwind stage allow empty array
+	unwindStageCustomer := bson.D{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$customerRef"}, {Key: "preserveNullAndEmptyArrays", Value: true}}}}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
 		{Key: "expenseID", Value: "$_id"},
 		{Key: "title", Value: 1},
@@ -293,23 +301,10 @@ func getPipelineGetExpenseByID(input model.GetExpenseByIDInput) bson.A {
 		{Key: "lists", Value: 1},
 		{Key: "currentVat", Value: 1},
 		{Key: "detail", Value: 1},
-		//turn customerRef and workRef to string
-		{Key: "workRef", Value: bson.D{
-			{Key: "$cond", Value: bson.A{
-				bson.D{{Key: "$eq", Value: bson.A{"$workRef", bson.A{}}}},
-				"",
-				"$workRef.title",
-			}},
-		}},
-		{Key: "customerRef", Value: bson.D{
-			{Key: "$cond", Value: bson.A{
-				bson.D{{Key: "$eq", Value: bson.A{"$customerRef", bson.A{}}}},
-				"",
-				"$customerRef.name",
-			}},
-		}},
+		{Key: "workRef", Value: "$workRef._id"},
+		{Key: "customerRef", Value: "$customerRef._id"},
 	}}}
-	pipeline := bson.A{matchStage, lookupStage, lookupStageCustomer, projectStage}
+	pipeline := bson.A{matchStage, lookupStage, lookupStageCustomer, unwindStage, unwindStageCustomer, projectStage}
 	return pipeline
 }
 

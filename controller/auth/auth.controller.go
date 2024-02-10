@@ -56,12 +56,12 @@ func RefreshTokenController(c *fiber.Ctx) error {
 		UserID: result.UserID,
 	}
 	if err != nil {
-		return exception.ErrorHandler(c, err)
+		return exception.ErrorHandler(c, exception.AccessDenialError{Message: err.Error()})
 	}
 	//call update refresh token
 	err = authservice.UpdateRefreshTokenService(tokenInpu)
 	if err != nil {
-		return exception.ErrorHandler(c, err)
+		return exception.ErrorHandler(c, exception.AccessDenialError{Message: err.Error()})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{

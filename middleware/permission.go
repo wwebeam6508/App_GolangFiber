@@ -20,7 +20,7 @@ func Permission(c *fiber.Ctx, input model.PermissionInput) error {
 	//get Authorization from header
 	split := strings.Split(c.Get("Authorization"), " ")
 	if len(split) != 2 {
-		return exception.ErrorHandler(c, exception.UnauthorizedError{Message: "permission denied"})
+		return exception.ErrorHandler(c, exception.ValidationError{Message: "permission denied"})
 	}
 	token := split[1]
 	//call verify jwt
@@ -37,7 +37,7 @@ func Permission(c *fiber.Ctx, input model.PermissionInput) error {
 		return exception.ErrorHandler(c, err)
 	}
 	if !permission {
-		return exception.ErrorHandler(c, exception.UnauthorizedError{Message: "permission denied"})
+		return exception.ErrorHandler(c, exception.ValidationError{Message: "permission denied"})
 	} else {
 		return c.Next()
 	}
@@ -96,12 +96,12 @@ func checkPermissionByUserID(userID string, input model.PermissionInput) (bool, 
 				KeyName := strings.ToLower(permissionDetail.Type().Field(j).Name)
 				if KeyName == input.Name {
 					if !permissionDetail.Field(j).Interface().(bool) {
-						return false, exception.UnauthorizedError{Message: "permission denied"}
+						return false, exception.ValidationError{Message: "permission denied"}
 					}
 					return true, nil
 				}
 			}
 		}
 	}
-	return false, exception.UnauthorizedError{Message: "permission denied"}
+	return false, exception.ValidationError{Message: "permission denied"}
 }

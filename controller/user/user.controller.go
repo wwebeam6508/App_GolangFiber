@@ -144,7 +144,6 @@ func DeleteUserController(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return exception.ErrorHandler(c, err)
 	}
-
 	err := service.DeleteUserService(body)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
@@ -176,7 +175,7 @@ func GetUserTypeNameController(c *fiber.Ctx) error {
 	rank := userData["userType"].(map[string]interface{})["rank"].(float64)
 	rankInt32 := int32(rank)
 	if rankInt32 == 0 {
-		return exception.ErrorHandler(c, exception.UnauthorizedError{Message: "your rank has been disabled"})
+		return exception.ErrorHandler(c, exception.ValidationError{Message: "your rank has been disabled"})
 	}
 	//check rank in result show only rank lower than user rank
 	var resultFilter []model.GetUserTypeNameResult
@@ -188,7 +187,6 @@ func GetUserTypeNameController(c *fiber.Ctx) error {
 			})
 		}
 	}
-
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "Success",
@@ -199,7 +197,6 @@ func GetUserTypeNameController(c *fiber.Ctx) error {
 func getSearchPipeline(search, searchFilter string) (bson.A, error) {
 	searchPipeline := bson.A{}
 	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
-		// if searchFilter is "userType" then { "userType.name": { $regex: search, $options: "i" } }
 		if searchFilter == "userType" {
 			searchPipeline = append(searchPipeline, bson.M{"userType.name": bson.M{"$regex": search, "$options": "i"}})
 		} else if searchFilter == "date" {
@@ -233,7 +230,6 @@ func getSearchPipeline(search, searchFilter string) (bson.A, error) {
 }
 
 func getUserBodyCondition(input model.GetUserControllerInput) model.GetUserControllerInput {
-
 	var result model.GetUserControllerInput
 	if input.PageSize <= 0 {
 		result.PageSize = 10
