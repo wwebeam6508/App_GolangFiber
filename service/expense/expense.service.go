@@ -218,37 +218,41 @@ func getPipelineGetExpense(input model.GetExpenseInput, searchPipeline model.Sea
 		{Key: "foreignField", Value: "_id"},
 		{Key: "as", Value: "workRef"},
 	}}}
+	//unwind stage allow empty array
+	unwindStage := bson.D{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$workRef"}, {Key: "preserveNullAndEmptyArrays", Value: true}}}}
 	lookupStageCustomer := bson.D{{Key: "$lookup", Value: bson.D{
 		{Key: "from", Value: "customers"},
 		{Key: "localField", Value: "customerRef.$id"},
 		{Key: "foreignField", Value: "_id"},
 		{Key: "as", Value: "customerRef"},
 	}}}
+	//unwind stage allow empty array
+	unwindStageCustomer := bson.D{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$customerRef"}, {Key: "preserveNullAndEmptyArrays", Value: true}}}}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
+		//expenseID
 		{Key: "expenseID", Value: "$_id"},
 		{Key: "title", Value: 1},
 		{Key: "date", Value: bson.D{
 			{Key: "$toDate", Value: "$date"},
 		}},
-		{Key: "lists", Value: 1},
-		{Key: "currentVat", Value: 1},
-		{Key: "workRef", Value: bson.D{
+		{Key: "isVat", Value: bson.D{
 			{Key: "$cond", Value: bson.A{
-				bson.D{{Key: "$eq", Value: bson.A{"$workRef", bson.A{}}}},
-				"",
-				"$workRef.title",
+				bson.D{{Key: "$eq", Value: bson.A{"$currentVat", 0}}}, false, true,
 			}},
 		}},
-		{Key: "customerRef", Value: bson.D{
-			{Key: "$cond", Value: bson.A{
-				bson.D{{Key: "$eq", Value: bson.A{"$customerRef", bson.A{}}}},
-				"",
-				"$customerRef.name",
-			}},
+		{Key: "totalPrice", Value: bson.D{
+			{Key: "$reduce", Value: bson.D{
+				{Key: "input", Value: "$lists"},
+				{Key: "initialValue", Value: 0},
+				{Key: "in", Value: bson.D{
+					{Key: "$add", Value: bson.A{"$$value", "$$this.price"}},
+				}}}},
 		}},
+		{Key: "workRef", Value: "$workRef.title"},
+		{Key: "customerRef", Value: "$customerRef.name"},
 	}}}
 
-	pipeline := bson.A{matchStage, lookupStage, lookupStageCustomer, projectStage, skipStage, limitStage}
+	pipeline := bson.A{matchStage, lookupStage, lookupStageCustomer, unwindStage, unwindStageCustomer, projectStage, skipStage, limitStage}
 	if !common.IsEmpty(searchPipeline.Search) && len(searchPipeline.SearchPipeline) > 0 {
 		pipeline = append(pipeline, searchPipeline.SearchPipeline...)
 	}
@@ -333,7 +337,7 @@ func GetExpenseCountService(searchPipeline model.SearchPipeline) (int32, error) 
 		return 0, err
 	}
 	if len(result) == 0 {
-		return 0, exception.NotFoundError{Message: "Not found"}
+		return 0, nil
 	}
 	return (result[0]["count"].(int32)), nil
 }

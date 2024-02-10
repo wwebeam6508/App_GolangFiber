@@ -23,13 +23,13 @@ type SearchPipeline struct {
 }
 
 type GetExpenseServiceResult struct {
-	ExpenseID   string        `json:"expenseID" bson:"expenseID"`
-	Title       string        `json:"title" bson:"title"`
-	Date        time.Time     `json:"date" bson:"date"`
-	Lists       []entity.List `json:"lists" bson:"lists"`
-	CurrentVat  float64       `json:"currentVat" bson:"currentVat"`
-	WorkRef     string        `json:"workRef" bson:"workRef"`
-	CustomerRef string        `json:"customerRef" bson:"customerRef"`
+	ExpenseID   primitive.ObjectID `json:"expenseID" bson:"expenseID"`
+	Title       string             `json:"title" bson:"title"`
+	TotalPrice  float64            `json:"totalPrice" bson:"totalPrice"`
+	Date        time.Time          `json:"date" bson:"date"`
+	IsVat       bool               `json:"isVat" bson:"isVat"`
+	WorkRef     string             `json:"workRef" bson:"workRef"`
+	CustomerRef string             `json:"customerRef" bson:"customerRef"`
 }
 
 type GetExpenseByIDInput struct {

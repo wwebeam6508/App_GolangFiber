@@ -207,5 +207,9 @@ func GetAllUserTypeCountService(input model.SearchPipeline) (int32, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	if len(result) == 0 {
+		return 0, nil
+	}
 	return result[0]["count"].(int32), nil
 }

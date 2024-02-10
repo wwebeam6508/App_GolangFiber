@@ -32,6 +32,9 @@ func PageArray(totalSize int32, pageSize int, page int, maxLength int) []interfa
 	currentPage := page
 	currentPosition := maxLength / 2
 	totalPage := int(math.Ceil(float64(totalSize) / float64(pageSize)))
+	if totalPage < 1 {
+		totalPage = 1
+	}
 
 	startPoint := 1
 	if currentPage-currentPosition >= 1 {
@@ -52,6 +55,7 @@ func PageArray(totalSize int32, pageSize int, page int, maxLength int) []interfa
 	if endPoint != totalPage {
 		pages = append(pages, "...")
 	}
+	// if pages is empty, return empty array
 	return pages
 }
 

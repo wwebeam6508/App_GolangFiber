@@ -3,7 +3,6 @@ package service
 import (
 	"PBD_backend_go/common"
 	"PBD_backend_go/configuration"
-	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/project"
 	"context"
 	"os"
@@ -100,7 +99,7 @@ func GetProjectCountService(searchPipeline model.SearchPipeline) (int32, error) 
 	}
 
 	if len(result) == 0 {
-		return 0, exception.NotFoundError{Message: "Not found"}
+		return 0, nil
 	}
 	return result[0]["count"].(int32), nil
 }
@@ -121,9 +120,6 @@ func GetProjectByIDService(input model.GetProjectByIDInput) (model.GetProjectByI
 	err = cursor.All(context.Background(), &result)
 	if err != nil {
 		return model.GetProjectByIDResult{}, err
-	}
-	if len(result) == 0 {
-		return model.GetProjectByIDResult{}, exception.NotFoundError{Message: "Project not found"}
 	}
 	return result[0], nil
 }
