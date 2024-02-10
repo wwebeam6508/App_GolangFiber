@@ -5,6 +5,7 @@ import (
 	"PBD_backend_go/exception"
 	"context"
 	"encoding/base64"
+	"fmt"
 	"math"
 	"math/rand"
 	"net/http"
@@ -64,6 +65,9 @@ func RandomString(length int) string {
 }
 
 func IsEmpty(x interface{}) bool {
+	if x == nil {
+		return true
+	}
 	//check if x is array
 	if reflect.TypeOf(x).Kind() == reflect.Slice {
 		return reflect.ValueOf(x).Len() == 0
@@ -161,4 +165,11 @@ func FindIndex[T any](slice []T, predicate func(T) bool) int {
 		}
 	}
 	return -1
+}
+
+func GenerateRandomColor() string {
+	r := rand.Intn(255)
+	g := rand.Intn(255)
+	b := rand.Intn(255)
+	return fmt.Sprintf("rgb(%d,%d,%d)", r, g, b)
 }

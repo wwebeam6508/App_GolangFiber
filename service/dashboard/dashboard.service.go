@@ -6,6 +6,7 @@ import (
 	model "PBD_backend_go/model/dashboard"
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"time"
 
@@ -13,13 +14,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func GetSpentAndEarnEachYear(year int) (*model.GetEarnAndSpendEachYearResult, error) {
-	years, err := getYearsList()
+func GetSpentAndEarnEachYear(year *int) (*model.GetEarnAndSpendEachYearResult, error) {
+	years, err := GetYearsList()
 	if err != nil {
 		return nil, err
 	}
 	if common.IsEmpty(year) {
-		year = years[0]
+		year = &years[0]
 	}
 	coll, err := configuration.ConnectToMongoDB()
 	defer coll.Disconnect(context.Background())
@@ -27,12 +28,12 @@ func GetSpentAndEarnEachYear(year int) (*model.GetEarnAndSpendEachYearResult, er
 		return nil, err
 	}
 	workRef := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
-	workResult, err := getWorkEarn(year, workRef)
+	workResult, err := getWorkEarn(*year, workRef)
 	if err != nil {
 		return nil, err
 	}
 	expenseRef := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("expenses")
-	expenseResult, err := getExpenseSpend(year, expenseRef)
+	expenseResult, err := getExpenseSpend(*year, expenseRef)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +62,7 @@ func GetSpentAndEarnEachYear(year int) (*model.GetEarnAndSpendEachYearResult, er
 
 }
 
-func GetTotalEarn(year int) (*int32, error) {
+func GetTotalEarn(year *int) (*int32, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	defer coll.Disconnect(context.Background())
 	if err != nil {
@@ -86,8 +87,8 @@ func GetTotalEarn(year int) (*int32, error) {
 		}}})
 	}
 	if !common.IsEmpty(year) {
-		start := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
-		end := time.Date(year, 12, 31, 23, 59, 59, 0, time.UTC)
+		start := time.Date(*year, 1, 1, 0, 0, 0, 0, time.UTC)
+		end := time.Date(*year, 12, 31, 23, 59, 59, 0, time.UTC)
 		pipelineWork = append(pipelineWork, bson.D{{Key: "$match", Value: bson.D{{Key: "dateEnd", Value: bson.D{
 			{Key: "$gte", Value: start},
 			{Key: "$lte", Value: end},
@@ -110,7 +111,7 @@ func GetTotalEarn(year int) (*int32, error) {
 	return &earn, nil
 }
 
-func GetTotalExpense(year int) (*int32, error) {
+func GetTotalExpense(year *int) (*int32, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	defer coll.Disconnect(context.Background())
 	if err != nil {
@@ -122,8 +123,8 @@ func GetTotalExpense(year int) (*int32, error) {
 		bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: 1}}}},
 	}
 	if !common.IsEmpty(year) {
-		start := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
-		end := time.Date(year, 12, 31, 23, 59, 59, 0, time.UTC)
+		start := time.Date(*year, 1, 1, 0, 0, 0, 0, time.UTC)
+		end := time.Date(*year, 12, 31, 23, 59, 59, 0, time.UTC)
 		pipelineExpense = append(pipelineExpense, bson.D{{Key: "$match", Value: bson.D{{Key: "date", Value: bson.D{
 			{Key: "$gte", Value: start},
 			{Key: "$lte", Value: end},
@@ -236,6 +237,119 @@ func GetYearsReport() ([]model.GetYearReportResult, error) {
 	}
 	return yearsReport, nil
 }
+
+func GetTotalWork() (*model.GetTotalWorkResult, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	workRef := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
+	pipelineWork := bson.A{
+		//match status = 1
+		bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: 1}}}},
+		//group totalWork : { $sum : 1 }
+		bson.D{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: nil},
+			{Key: "totalWork", Value: bson.D{{Key: "$sum", Value: 1}}},
+			{Key: "totalWorkUnfinished", Value: bson.D{{Key: "$sum", Value: bson.D{
+				{Key: "$cond", Value: bson.A{
+					bson.D{{Key: "$eq", Value: bson.A{"$dateEnd", nil}}},
+					1,
+					0,
+				},
+				},
+			}}},
+			},
+		}}},
+	}
+	workCursor, err := workRef.Aggregate(context.Background(), pipelineWork)
+	if err != nil {
+		return nil, err
+	}
+	var totalWork model.GetTotalWorkResult
+	if workCursor.Next(context.Background()) {
+		workCursor.Decode(&totalWork)
+	}
+	return &totalWork, nil
+}
+
+func GetWorkCustomer() (*model.GetWorkCustomerResult, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	workRef := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
+	pipelineWork := bson.A{
+		//match status = 1
+		bson.D{{Key: "$match", Value: bson.D{
+			{Key: "status", Value: 1},
+			{Key: "dateEnd", Value: bson.D{{Key: "$ne", Value: nil}}},
+		}}},
+		//lookup customer
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "customers"},
+			{Key: "localField", Value: "customer.$id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "customer"},
+		}}},
+		//unwind customer
+		bson.D{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$customer"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
+		}}},
+		//group by customer
+		bson.D{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$customer._id"},
+			{Key: "name", Value: bson.D{{Key: "$first", Value: "$customer.name"}}},
+			{Key: "totalWork", Value: bson.D{{Key: "$sum", Value: 1}}},
+			{Key: "totalEarn", Value: bson.D{{Key: "$sum", Value: "$profit"}}},
+		}}}}
+	workCursor, err := workRef.Aggregate(context.Background(), pipelineWork)
+	if err != nil {
+		return nil, err
+	}
+	var workCustomerResult []model.GetWorkCustomerProcess
+	if err = workCursor.All(context.Background(), &workCustomerResult); err != nil {
+		return nil, err
+	}
+	var customerWork []model.CustomerWork
+	var customerMoney []model.CustomerMoney
+	var totalWorks int
+	var totalEarns int
+	for _, work := range workCustomerResult {
+		color := common.GenerateRandomColor()
+		customerWork = append(customerWork, model.CustomerWork{
+			Name:      work.Name,
+			WorkCount: work.TotalWork,
+			Color:     color,
+			Ratio:     0,
+		})
+		totalWorks += work.TotalWork
+		customerMoney = append(customerMoney, model.CustomerMoney{
+			Name:      work.Name,
+			TotalEarn: work.TotalEarn,
+			Color:     color,
+			Ratio:     0,
+		})
+		totalEarns += work.TotalEarn
+	}
+
+	//calculate ratio and fixed 2 decimal
+	for i, work := range customerWork {
+		customerWork[i].Ratio = math.Round(float64(work.WorkCount) / float64(totalWorks) * 100)
+	}
+	for i, money := range customerMoney {
+		customerMoney[i].Ratio = math.Round(float64(money.TotalEarn) / float64(totalEarns) * 100)
+	}
+	return &model.GetWorkCustomerResult{
+
+		CustomerWork:  customerWork,
+		CustomerMoney: customerMoney,
+	}, nil
+}
+
 func getWorkEarn(year int, workRef *mongo.Collection) (*[]model.WorkResult, error) {
 
 	pipelineWork := bson.A{
@@ -323,7 +437,7 @@ func getExpenseSpend(year int, expenseRef *mongo.Collection) (*[]model.ExpenseRe
 	return &expenseResult, nil
 }
 
-func getYearsList() ([]int, error) {
+func GetYearsList() ([]int, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	defer coll.Disconnect(context.Background())
 	if err != nil {

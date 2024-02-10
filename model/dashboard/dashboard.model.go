@@ -1,5 +1,18 @@
 package model
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
+type DashboardResponse struct {
+	TotalWork            int                           `json:"totalWork" bson:"totalWork"`
+	TotalWorkUnfinished  int                           `json:"totalWorkUnfinished" bson:"totalWorkUnfinished"`
+	TotalEarn            int32                         `json:"totalEarn" bson:"totalEarn"`
+	TotalExpense         int32                         `json:"totalExpense" bson:"totalExpense"`
+	YearsReport          []GetYearReportResult         `json:"yearsReport" bson:"yearsReport"`
+	CustomerWorkRatio    []CustomerWork                `json:"customerWorkRatio" bson:"customerWorkRatio"`
+	CustomerProfitRatio  []CustomerMoney               `json:"customerProfitRatio" bson:"customerProfitRatio"`
+	EarnAndSpendEachYear GetEarnAndSpendEachYearResult `json:"spentAndEarnEachMonth" bson:"spentAndEarnEachMonth"`
+}
+
 type GetEarnAndSpendEachYearInput struct {
 	Year int `json:"year" bson:"year"`
 }
@@ -66,17 +79,36 @@ type GetYearReportResult struct {
 	TotalExpense int32 `json:"totalExpense" bson:"totalExpense"`
 }
 
+type GetWorkCustomerProcess struct {
+	ID        primitive.ObjectID `json:"_id" bson:"_id"`
+	Name      string             `json:"name" bson:"name"`
+	TotalWork int                `json:"totalWork" bson:"totalWork"`
+	TotalEarn int                `json:"totalEarn" bson:"totalEarn"`
+}
+
 type GetWorkCustomerResult struct {
-	CustomerWork []struct {
-		Name      string  `json:"name" bson:"name"`
-		WorkCount int     `json:"workCount" bson:"workCount"`
-		Color     string  `json:"color" bson:"color"`
-		Ratio     float64 `json:"ratio" bson:"ratio"`
-	} `json:"customerWork" bson:"customerWork"`
-	CustomerMoney []struct {
-		Name      string  `json:"name" bson:"name"`
-		TotalEarn float64 `json:"totalEarn" bson:"totalEarn"`
-		Color     string  `json:"color" bson:"color"`
-		Ratio     float64 `json:"ratio" bson:"ratio"`
-	} `json:"customerMoney" bson:"customerMoney"`
+	CustomerWork  []CustomerWork  `json:"customerWork" bson:"customerWork"`
+	CustomerMoney []CustomerMoney `json:"customerMoney" bson:"customerMoney"`
+}
+
+type CustomerWork struct {
+	Name      string  `json:"name" bson:"name"`
+	WorkCount int     `json:"workCount" bson:"workCount"`
+	Color     string  `json:"color" bson:"color"`
+	Ratio     float64 `json:"ratio" bson:"ratio"`
+}
+
+type CustomerMoney struct {
+	Name      string  `json:"name" bson:"name"`
+	TotalEarn int     `json:"totalEarn" bson:"totalEarn"`
+	Color     string  `json:"color" bson:"color"`
+	Ratio     float64 `json:"ratio" bson:"ratio"`
+}
+
+type GetTotalEarnResult struct {
+	TotalEarn int32 `json:"totalEarn" bson:"totalEarn"`
+}
+
+type GetTotalSpendResult struct {
+	TotalExpense int32 `json:"totalExpense" bson:"totalExpense"`
 }
