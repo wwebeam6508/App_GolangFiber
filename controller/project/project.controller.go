@@ -6,6 +6,7 @@ import (
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/project"
 	service "PBD_backend_go/service/project"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -44,10 +45,6 @@ func GetProjectController(c *fiber.Ctx) error {
 		projectCountChan <- count
 		errChan <- nil
 	}()
-	err = <-errChan
-	if err != nil {
-		return exception.ErrorHandler(c, err)
-	}
 	projectChan := make(chan []model.GetProjectServiceResult, 1)
 	go func() {
 		project, err := service.GetProjectService(body, searchPipelineGroup)
@@ -65,13 +62,13 @@ func GetProjectController(c *fiber.Ctx) error {
 	}
 	projectCount := <-projectCountChan
 	project := <-projectChan
-	pages := common.PageArray(projectCount, body.PageSize, body.Page, 5)
+	fmt.Println(projectCount)
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "Success",
 		Data: commonentity.PaginationResponse{
 			CurrentPage: body.Page,
-			Pages:       pages,
+			Pages:       common.PageArray(projectCount, body.PageSize, body.Page, 5),
 			Data:        project,
 			LastPage:    int(math.Ceil(float64(projectCount) / float64(body.PageSize))),
 		},
@@ -234,9 +231,9 @@ func GetCustomerNameController(c *fiber.Ctx) error {
 func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 	searchPipeline := bson.A{}
 	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
-		// if searchFilter is "customer" then { "customer.name": { $regex: search, $options: "i" } }
 		if searchFilter == "customer" {
-			searchPipeline = append(searchPipeline, bson.M{"customer.name": bson.M{"$regex": search, "$options": "i"}})
+			//search customer name
+			searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "customer.name", Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}}}})
 		} else if searchFilter == "date" || searchFilter == "dateEnd" {
 			split := strings.Split(search, ",")
 			if len(split) != 2 {
@@ -254,7 +251,7 @@ func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 				searchPipeline = append(searchPipeline, bson.M{searchFilter: bson.M{"$gte": primitive.NewDateTimeFromTime(dateStartSearch), "$lte": primitive.NewDateTimeFromTime(dateEndSearch)}})
 			}
 		} else {
-			searchPipeline = append(searchPipeline, bson.M{searchFilter: bson.M{"$regex": search, "$options": "i"}})
+			searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: searchFilter, Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}}}})
 		}
 	}
 	return searchPipeline, nil

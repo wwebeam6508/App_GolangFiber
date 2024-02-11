@@ -21,7 +21,7 @@ type SearchPipeline struct {
 }
 
 type GetProjectServiceResult struct {
-	ProjectID primitive.ObjectID `json:"workID" bson:"workID"`
+	ProjectID primitive.ObjectID `json:"projectID" bson:"projectID"`
 	Title     string             `json:"title" bson:"title"`
 	Date      time.Time          `json:"date" bson:"date"`
 	Profit    float64            `json:"profit" bson:"profit"`
@@ -30,11 +30,11 @@ type GetProjectServiceResult struct {
 }
 
 type GetProjectByIDInput struct {
-	ProjectID string `json:"workID" bson:"workID" validate:"required"`
+	ProjectID string `json:"projectID" bson:"projectID" validate:"required"`
 }
 
 type GetProjectByIDResult struct {
-	ProjectID primitive.ObjectID `json:"workID" bson:"workID"`
+	ProjectID primitive.ObjectID `json:"projectID" bson:"projectID"`
 	Title     string             `json:"title" bson:"title"`
 	Date      time.Time          `json:"date" bson:"date"`
 	Profit    float64            `json:"profit" bson:"profit"`
@@ -55,7 +55,7 @@ type AddProjectInput struct {
 }
 
 type UpdateProjectID struct {
-	ProjectID string `json:"workID" bson:"workID" validate:"required"`
+	ProjectID string `json:"projectID" bson:"projectID" validate:"required"`
 }
 
 type UpdateProjectInput struct {
@@ -69,10 +69,10 @@ type UpdateProjectInput struct {
 }
 
 type DeleteProjectInput struct {
-	ProjectID string `json:"workID" bson:"workID" validate:"required"`
+	ProjectID string `json:"projectID" bson:"projectID" validate:"required"`
 }
 
 type GetCustomerNameResult struct {
-	CustomerID primitive.ObjectID `json:"_id" bson:"_id"`
+	CustomerID primitive.ObjectID `json:"id" bson:"id"`
 	Name       string             `json:"name" bson:"name"`
 }

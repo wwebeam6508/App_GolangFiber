@@ -33,10 +33,11 @@ func GetProjectService(input model.GetProjectInput, searchPipeline model.SearchP
 	}}}
 	unwindStage := bson.D{{Key: "$unwind", Value: bson.D{
 		{Key: "path", Value: "$customer"},
+		{Key: "preserveNullAndEmptyArrays", Value: true},
 	}}}
 
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
-		{Key: "workID", Value: "$_id"},
+		{Key: "projectID", Value: "$_id"},
 		{Key: "title", Value: 1},
 		{Key: "date", Value: bson.D{
 			{Key: "$toDate", Value: "$date"},
@@ -49,7 +50,8 @@ func GetProjectService(input model.GetProjectInput, searchPipeline model.SearchP
 	}}}
 	pipeline := bson.A{matchState, lookupStage, unwindStage, projectStage, skipStage, limitStage}
 	if !common.IsEmpty(searchPipeline.Search) && len(searchPipeline.SearchPipeline) > 0 {
-		pipeline = append(pipeline, searchPipeline.SearchPipeline...)
+		//put searchPipeline to pipeline before projectStage
+		pipeline = append(pipeline[:3], append(searchPipeline.SearchPipeline, pipeline[3:]...)...)
 	}
 	if !common.IsEmpty(input.SortTitle) && !common.IsEmpty(input.SortType) {
 		var sortValue int
@@ -61,7 +63,6 @@ func GetProjectService(input model.GetProjectInput, searchPipeline model.SearchP
 		sortStage := bson.D{{Key: "$sort", Value: bson.D{{Key: input.SortTitle, Value: sortValue}}}}
 		pipeline = append(pipeline, sortStage)
 	}
-
 	var result []model.GetProjectServiceResult
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
 	if err != nil {
@@ -82,12 +83,17 @@ func GetProjectCountService(searchPipeline model.SearchPipeline) (int32, error) 
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
+	lookupStage := bson.D{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "customers"},
+		{Key: "localField", Value: "customer.$id"},
+		{Key: "foreignField", Value: "_id"},
+		{Key: "as", Value: "customer"},
+	}}}
 	groupStage := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: nil}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}}
-	pipeline := bson.A{matchStage, groupStage}
-	if searchPipeline.Search != "" {
-		pipeline = append(pipeline, searchPipeline.SearchPipeline...)
+	pipeline := bson.A{matchStage, lookupStage, groupStage}
+	if !common.IsEmpty(searchPipeline.Search) && len(searchPipeline.SearchPipeline) > 0 {
+		pipeline = append(pipeline[:2], append(searchPipeline.SearchPipeline, pipeline[2:]...)...)
 	}
-	pipeline = append(pipeline, groupStage)
 	var result []bson.M
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
 	if err != nil {
@@ -193,7 +199,7 @@ func GetCustomerNameService() ([]model.GetCustomerNameResult, error) {
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("customers")
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
-		{Key: "_id", Value: 1},
+		{Key: "id", Value: "$_id"},
 		{Key: "name", Value: 1},
 	}}}
 	pipeline := bson.A{projectStage}
@@ -235,9 +241,10 @@ func getPipelineGetProjectByID(projectID string) bson.A {
 	}}}
 	unwindStage := bson.D{{Key: "$unwind", Value: bson.D{
 		{Key: "path", Value: "$customer"},
+		{Key: "preserveNullAndEmptyArrays", Value: true},
 	}}}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
-		{Key: "workID", Value: "$_id"},
+		{Key: "projectID", Value: "$_id"},
 		{Key: "title", Value: 1},
 		{Key: "date", Value: bson.D{
 			{Key: "$toDate", Value: "$date"},

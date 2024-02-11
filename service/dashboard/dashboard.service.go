@@ -61,11 +61,11 @@ func GetSpentAndEarnEachYear(year *int) (*model.GetEarnAndSpendEachYearResult, e
 
 }
 
-func GetTotalEarn(year *int) (*int32, error) {
+func GetTotalEarn(year *int) (*model.GetTotalEarnResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	defer coll.Disconnect(context.Background())
 	if err != nil {
-		return nil, err
+		return &model.GetTotalEarnResult{}, err
 	}
 	workRef := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	pipelineWork := bson.A{
@@ -100,17 +100,17 @@ func GetTotalEarn(year *int) (*int32, error) {
 	}}})
 	workCursor, err := workRef.Aggregate(context.Background(), pipelineWork)
 	if err != nil {
-		return nil, err
+		return &model.GetTotalEarnResult{}, err
 	}
-	var totalEarn bson.M
+	var result model.GetTotalEarnResult
 	if workCursor.Next(context.Background()) {
-		workCursor.Decode(&totalEarn)
+		workCursor.Decode(&result)
 	}
-	earn := totalEarn["totalEarn"].(int32)
-	return &earn, nil
+
+	return &result, nil
 }
 
-func GetTotalExpense(year *int) (*int32, error) {
+func GetTotalExpense(year *int) (*model.GetTotalSpendResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	defer coll.Disconnect(context.Background())
 	if err != nil {
@@ -146,12 +146,11 @@ func GetTotalExpense(year *int) (*int32, error) {
 	if err != nil {
 		return nil, err
 	}
-	var totalExpense bson.M
+	var totalExpense model.GetTotalSpendResult
 	if expenseCursor.Next(context.Background()) {
 		expenseCursor.Decode(&totalExpense)
 	}
-	expense := int32(totalExpense["totalExpense"].(float64))
-	return &expense, nil
+	return &totalExpense, nil
 }
 
 func GetYearsReport() ([]model.GetYearReportResult, error) {
@@ -342,6 +341,14 @@ func GetWorkCustomer() (*model.GetWorkCustomerResult, error) {
 	for i, money := range customerMoney {
 		customerMoney[i].Ratio = math.Round(float64(money.TotalEarn) / float64(totalEarns) * 100)
 	}
+	//sort by ratio desc
+	customerWork = common.SortDesc(customerWork, func(i, j model.CustomerWork) bool {
+		return i.Ratio < j.Ratio
+	})
+	customerMoney = common.SortDesc(customerMoney, func(i, j model.CustomerMoney) bool {
+		return i.Ratio < j.Ratio
+	})
+
 	return &model.GetWorkCustomerResult{
 
 		CustomerWork:  customerWork,
@@ -485,6 +492,8 @@ func GetYearsList() ([]int, error) {
 		}
 	}
 	//sort years desc
-	common.SortIntDesc(&years)
+	years = common.SortDesc(years, func(i, j int) bool {
+		return i < j
+	})
 	return years, nil
 }

@@ -10,7 +10,7 @@ import (
 )
 
 func GetDashboardController(c *fiber.Ctx) error {
-	earnAndSpendEachYearChan, customerRatioChan, totalEarnChan, totalExpenseChan, wholeTotalWorkChan, yearsReportChan, errChan := make(chan model.GetEarnAndSpendEachYearResult, 1), make(chan model.GetWorkCustomerResult, 1), make(chan int32, 1), make(chan int32, 1), make(chan model.GetTotalWorkResult, 1), make(chan []model.GetYearReportResult, 1), make(chan error, 7)
+	earnAndSpendEachYearChan, customerRatioChan, totalEarnChan, totalExpenseChan, wholeTotalWorkChan, yearsReportChan, errChan := make(chan model.GetEarnAndSpendEachYearResult, 1), make(chan model.GetWorkCustomerResult, 1), make(chan model.GetTotalEarnResult, 1), make(chan model.GetTotalSpendResult, 1), make(chan model.GetTotalWorkResult, 1), make(chan []model.GetYearReportResult, 1), make(chan error, 7)
 	go func() {
 		earnAndSpendEachYear, err := service.GetSpentAndEarnEachYear(nil)
 		if err != nil {
@@ -35,7 +35,7 @@ func GetDashboardController(c *fiber.Ctx) error {
 		totalEarn, err := service.GetTotalEarn(nil)
 		if err != nil {
 			errChan <- err
-			totalEarnChan <- 0
+			totalEarnChan <- model.GetTotalEarnResult{}
 			return
 		}
 		totalEarnChan <- *totalEarn
@@ -45,7 +45,7 @@ func GetDashboardController(c *fiber.Ctx) error {
 		totalExpense, err := service.GetTotalExpense(nil)
 		if err != nil {
 			errChan <- err
-			totalExpenseChan <- 0
+			totalExpenseChan <- model.GetTotalSpendResult{}
 			return
 		}
 		totalExpenseChan <- *totalExpense
@@ -88,8 +88,8 @@ func GetDashboardController(c *fiber.Ctx) error {
 		Data: model.DashboardResponse{
 			TotalWork:            wholeTotalWork.TotalWork,
 			TotalWorkUnfinished:  wholeTotalWork.TotalWorkUnfinished,
-			TotalEarn:            totalEarn,
-			TotalExpense:         totalExpense,
+			TotalEarn:            totalEarn.TotalEarn,
+			TotalExpense:         totalExpense.TotalExpense,
 			YearsReport:          yearsReport,
 			CustomerWorkRatio:    customerRatio.CustomerWork,
 			CustomerProfitRatio:  customerRatio.CustomerMoney,
@@ -122,7 +122,7 @@ func GetTotalEarnController(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "Success",
-		Data:    model.GetTotalEarnResult{TotalEarn: *totalEarn},
+		Data:    model.GetTotalEarnResult{TotalEarn: *&totalEarn.TotalEarn},
 	})
 }
 
@@ -134,7 +134,7 @@ func GetTotalExpenseController(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "Success",
-		Data:    model.GetTotalSpendResult{TotalExpense: *totalExpense},
+		Data:    model.GetTotalSpendResult{TotalExpense: *&totalExpense.TotalExpense},
 	})
 }
 
@@ -161,5 +161,3 @@ func GetYearsReportController(c *fiber.Ctx) error {
 		Data:    yearsReport,
 	})
 }
-
-

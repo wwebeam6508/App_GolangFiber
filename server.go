@@ -2,6 +2,7 @@ package main
 
 import (
 	"PBD_backend_go/routes"
+	"fmt"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,7 +12,7 @@ import (
 func runEnv() {
 	err := godotenv.Load()
 	if err != nil {
-		panic(err)
+		fmt.Println("Error loading .env file")
 	}
 }
 

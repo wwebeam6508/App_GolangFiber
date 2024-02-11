@@ -152,14 +152,15 @@ func Contains(arr []int, x int) bool {
 	return false
 }
 
-func SortIntDesc(input *[]int) {
-	for i := 0; i < len(*input); i++ {
-		for j := i + 1; j < len(*input); j++ {
-			if (*input)[i] < (*input)[j] {
-				(*input)[i], (*input)[j] = (*input)[j], (*input)[i]
+func SortDesc[T any](arr []T, less func(T, T) bool) []T {
+	for i := 0; i < len(arr); i++ {
+		for j := i; j < len(arr); j++ {
+			if less(arr[i], arr[j]) {
+				arr[i], arr[j] = arr[j], arr[i]
 			}
 		}
 	}
+	return arr
 }
 
 func FindIndex[T any](slice []T, predicate func(T) bool) int {

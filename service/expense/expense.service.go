@@ -258,7 +258,8 @@ func getPipelineGetExpense(input model.GetExpenseInput, searchPipeline model.Sea
 
 	pipeline := bson.A{matchStage, lookupStage, lookupStageCustomer, unwindStage, unwindStageCustomer, projectStage, skipStage, limitStage}
 	if !common.IsEmpty(searchPipeline.Search) && len(searchPipeline.SearchPipeline) > 0 {
-		pipeline = append(pipeline, searchPipeline.SearchPipeline...)
+		//put searchPipeline to pipeline before projectStage
+		pipeline = append(pipeline[:3], append(searchPipeline.SearchPipeline, pipeline[3:]...)...)
 	}
 	if !common.IsEmpty(input.SortTitle) && !common.IsEmpty(input.SortType) {
 		var sortValue int
@@ -317,10 +318,15 @@ func GetExpenseCountService(searchPipeline model.SearchPipeline) (int32, error) 
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("expenses")
 
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
+	lookupStage := bson.D{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "works"},
+		{Key: "localField", Value: "workRef.$id"},
+		{Key: "foreignField", Value: "_id"},
+		{Key: "as", Value: "workRef"}}}}
 	groupStage := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: nil}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}}
-	pipeline := bson.A{matchStage, groupStage}
+	pipeline := bson.A{matchStage, lookupStage, groupStage}
 	if !common.IsEmpty(searchPipeline.Search) {
-		pipeline = append(pipeline, searchPipeline.SearchPipeline...)
+		pipeline = append(pipeline[:2], append(searchPipeline.SearchPipeline, pipeline[2:]...)...)
 	}
 	var result []bson.M
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
