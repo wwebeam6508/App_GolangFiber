@@ -234,6 +234,24 @@ func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 		if searchFilter == "customer" {
 			//search customer name
 			searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "customer.name", Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}}}})
+		} else if searchFilter == "profit" {
+			// split search by comma
+			split := strings.Split(search, ",")
+			if len(split) != 2 {
+				return searchPipeline, exception.ValidationError{Message: "invalid profit"}
+			}
+			// convert to float
+			profitStart, err := strconv.ParseFloat(split[0], 64)
+			if err != nil {
+				return searchPipeline, exception.ValidationError{Message: "invalid profit"}
+			}
+			profitEnd, err := strconv.ParseFloat(split[1], 64)
+			if err != nil {
+				return searchPipeline, exception.ValidationError{Message: "invalid profit"}
+			}
+			// add to pipeline
+			searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "profit", Value: bson.D{{Key: "$gte", Value: profitStart}, {Key: "$lte", Value: profitEnd}}}}}})
+
 		} else if searchFilter == "date" || searchFilter == "dateEnd" {
 			split := strings.Split(search, ",")
 			if len(split) != 2 {
