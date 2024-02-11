@@ -29,12 +29,10 @@ type GetUserServiceResult struct {
 }
 
 type GetUserServiceInput struct {
-	Page           int    `json:"page" bson:"page"`
-	PageSize       int    `json:"pageSize" bson:"pageSize"`
-	SortTitle      string `json:"sortTitle" bson:"sortTitle"`
-	SortType       string `json:"sortType" bson:"sortType"`
-	Search         string `json:"search" bson:"search"`
-	SearchPipeline bson.A `json:"searchPipeline" bson:"searchPipeline"`
+	Page      int    `json:"page" bson:"page"`
+	PageSize  int    `json:"pageSize" bson:"pageSize"`
+	SortTitle string `json:"sortTitle" bson:"sortTitle"`
+	SortType  string `json:"sortType" bson:"sortType"`
 }
 
 type GetUserByIDServiceResult struct {

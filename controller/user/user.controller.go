@@ -23,7 +23,7 @@ func GetUserController(c *fiber.Ctx) error {
 	if err := c.QueryParser(&body); err != nil {
 		return exception.ErrorHandler(c, err)
 	}
-	body = getUserBodyCondition(body)
+	getUserBodyCondition(&body)
 	// searchPipeline as array
 	searchPipeline, err := getSearchPipeline(body.Search, body.SearchFilter)
 	if err != nil {
@@ -35,12 +35,10 @@ func GetUserController(c *fiber.Ctx) error {
 	}
 	// check is searchPipeline empty
 	input := model.GetUserServiceInput{
-		Page:           body.Page,
-		PageSize:       body.PageSize,
-		SortTitle:      body.SortTitle,
-		SortType:       body.SortType,
-		Search:         body.Search,
-		SearchPipeline: searchPipeline,
+		Page:      body.Page,
+		PageSize:  body.PageSize,
+		SortTitle: body.SortTitle,
+		SortType:  body.SortType,
 	}
 	resultChan := make(chan []model.GetUserServiceResult, 1)
 	errChan := make(chan error, 2)
@@ -229,16 +227,17 @@ func getSearchPipeline(search, searchFilter string) (bson.A, error) {
 	return searchPipeline, nil
 }
 
-func getUserBodyCondition(input model.GetUserControllerInput) model.GetUserControllerInput {
-	var result model.GetUserControllerInput
+func getUserBodyCondition(input *model.GetUserControllerInput) {
+	if input.Page <= 0 {
+		input.Page = 1
+	}
 	if input.PageSize <= 0 {
-		result.PageSize = 10
+		input.PageSize = 10
 	}
 	if input.SortTitle == "" {
-		result.SortTitle = "date"
+		input.SortTitle = "date"
 	}
 	if input.SortType == "" {
-		result.SortType = "desc"
+		input.SortType = "desc"
 	}
-	return result
 }

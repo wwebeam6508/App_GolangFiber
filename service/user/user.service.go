@@ -211,10 +211,16 @@ func GetAllUserCount(searchPipeline model.SearchPipeline) (int32, error) {
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users")
 	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "status", Value: bson.D{{Key: "$eq", Value: 1}}}}}}
+	lookupStage := bson.D{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "userType"},
+		{Key: "localField", Value: "userTypeID"},
+		{Key: "foreignField", Value: "_id"},
+		{Key: "as", Value: "userType"},
+	}}}
 	groupStage := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: nil}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}}
-	pipeline := bson.A{matchStage, groupStage}
+	pipeline := bson.A{matchStage, lookupStage, groupStage}
 	if searchPipeline.Search != "" {
-		pipeline = append(pipeline, searchPipeline.SearchPipeline...)
+		pipeline = append(pipeline[:2], append(searchPipeline.SearchPipeline, pipeline[2:]...)...)
 	}
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
 	if err != nil {
