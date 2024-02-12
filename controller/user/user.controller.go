@@ -221,7 +221,7 @@ func getSearchPipeline(search, searchFilter string) (bson.A, error) {
 				searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "createdAt", Value: bson.D{{Key: "$gte", Value: primitive.NewDateTimeFromTime(dateStartSearch)}, {Key: "$lte", Value: primitive.NewDateTimeFromTime(dateEndSearch)}}}}}})
 			}
 		} else {
-			searchPipeline = append(searchPipeline, bson.M{searchFilter: bson.M{"$regex": search, "$options": "i"}})
+			searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: searchFilter, Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}}}})
 		}
 	}
 	return searchPipeline, nil
