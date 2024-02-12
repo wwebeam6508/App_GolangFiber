@@ -70,16 +70,13 @@ func GetUserController(c *fiber.Ctx) error {
 	result := <-resultChan
 	allUserCount := <-allUserCountChan
 
-	pages := common.PageArray(allUserCount, input.PageSize, input.Page, 5)
-	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
-		Code:    fiber.StatusOK,
-		Message: "Success",
-		Data: bson.M{
-			"currentPage": body.Page,
-			"pages":       pages,
-			"data":        result,
-			"lastPage":    math.Ceil(float64(allUserCount) / float64(body.PageSize)),
-		},
+	return c.Status(fiber.StatusOK).JSON(commonentity.PaginationResponse{
+		Code:        fiber.StatusOK,
+		Message:     "Success",
+		CurrentPage: body.Page,
+		Pages:       common.PageArray(allUserCount, body.PageSize, body.Page, 5),
+		Data:        result,
+		LastPage:    int(math.Ceil(float64(allUserCount) / float64(body.PageSize))),
 	})
 }
 

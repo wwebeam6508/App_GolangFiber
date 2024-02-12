@@ -166,17 +166,62 @@ func UpdateCustomerService(input model.UpdateCustomerInput, updateCustomerID mod
 	refValue := reflect.ValueOf(input)
 	for i := 0; i < refValue.NumField(); i++ {
 		if !common.IsEmpty(refValue.Field(i).Interface()) {
+			if reflect.ValueOf(input).Type().Field(i).Name == "RemoveEmails" || reflect.ValueOf(input).Type().Field(i).Name == "addEmails" {
+				continue
+			}
 			updateField = append(updateField, bson.E{Key: refValue.Type().Field(i).Tag.Get("json"), Value: refValue.Field(i).Interface()})
 		}
 	}
-	updateResult, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: customerIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: updateField}})
-
+	filter := bson.D{{Key: "_id", Value: customerIDObjectID}, {Key: "status", Value: 1}}
+	updateResult, err := ref.UpdateOne(context.Background(), filter, bson.D{{Key: "$set", Value: updateField}})
 	if err != nil {
 		return err
 	}
 	if updateResult.MatchedCount == 0 {
 		return exception.NotFoundError{Message: "customer not found"}
 	}
+	if !common.IsEmpty(input.RemoveEmails) {
+		updateField := bson.M{"$pull": bson.M{
+			"emails": bson.M{
+				"$in": input.RemoveEmails,
+			},
+		}}
+		_, err := ref.UpdateOne(context.Background(), filter, updateField)
+		if err != nil {
+			return err
+		}
+	}
+	if !common.IsEmpty(input.AddEmails) {
+		updateField := bson.M{"$push": bson.M{"emails": bson.M{
+			"$each": input.AddEmails,
+		}}}
+		_, err := ref.UpdateOne(context.Background(), filter, updateField)
+		if err != nil {
+			return err
+		}
+	}
+	if !common.IsEmpty(input.RemovePhones) {
+		updateField := bson.M{"$pull": bson.M{
+			"phones": bson.M{
+				"$in": input.RemovePhones,
+			},
+		}}
+		_, err := ref.UpdateOne(context.Background(), filter, updateField)
+		if err != nil {
+			return err
+		}
+	}
+	if !common.IsEmpty(input.AddPhones) {
+		updateField := bson.M{"$push": bson.M{
+			"phones": bson.M{
+				"$each": input.AddPhones,
+			}}}
+		_, err := ref.UpdateOne(context.Background(), filter, updateField)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

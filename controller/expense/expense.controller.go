@@ -66,15 +66,13 @@ func GetExpenseController(c *fiber.Ctx) error {
 	}
 	expenseCount := <-expenseCountChan
 	expense := <-expenseChan
-	return c.Status(200).JSON(commonentity.GeneralResponse{
-		Code:    fiber.StatusOK,
-		Message: "Success",
-		Data: commonentity.PaginationResponse{
-			CurrentPage: query.Page,
-			Pages:       common.PageArray(expenseCount, query.PageSize, query.Page, 5),
-			Data:        expense,
-			LastPage:    int(math.Ceil(float64(expenseCount) / float64(query.PageSize))),
-		},
+	return c.Status(fiber.StatusOK).JSON(commonentity.PaginationResponse{
+		Code:        fiber.StatusOK,
+		Message:     "Success",
+		CurrentPage: query.Page,
+		Pages:       common.PageArray(expenseCount, query.PageSize, query.Page, 5),
+		Data:        expense,
+		LastPage:    int(math.Ceil(float64(expenseCount) / float64(query.PageSize))),
 	})
 }
 

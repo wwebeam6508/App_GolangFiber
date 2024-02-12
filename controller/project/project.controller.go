@@ -61,15 +61,13 @@ func GetProjectController(c *fiber.Ctx) error {
 	}
 	projectCount := <-projectCountChan
 	project := <-projectChan
-	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
-		Code:    fiber.StatusOK,
-		Message: "Success",
-		Data: commonentity.PaginationResponse{
-			CurrentPage: body.Page,
-			Pages:       common.PageArray(projectCount, body.PageSize, body.Page, 5),
-			Data:        project,
-			LastPage:    int(math.Ceil(float64(projectCount) / float64(body.PageSize))),
-		},
+	return c.Status(fiber.StatusOK).JSON(commonentity.PaginationResponse{
+		Code:        fiber.StatusOK,
+		Message:     "Success",
+		CurrentPage: body.Page,
+		Pages:       common.PageArray(projectCount, body.PageSize, body.Page, 5),
+		Data:        project,
+		LastPage:    int(math.Ceil(float64(projectCount) / float64(body.PageSize))),
 	})
 }
 

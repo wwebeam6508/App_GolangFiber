@@ -59,16 +59,13 @@ func GetCustomerController(c *fiber.Ctx) error {
 	}
 	customerCount := <-customerCountChan
 	customer := <-customerChan
-	pages := common.PageArray(customerCount, body.PageSize, body.Page, 5)
-	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
-		Code:    fiber.StatusOK,
-		Message: "Success",
-		Data: commonentity.PaginationResponse{
-			CurrentPage: body.Page,
-			Pages:       pages,
-			Data:        customer,
-			LastPage:    int(math.Ceil(float64(customerCount) / float64(body.PageSize))),
-		},
+	return c.Status(fiber.StatusOK).JSON(commonentity.PaginationResponse{
+		Code:        fiber.StatusOK,
+		Message:     "Success",
+		CurrentPage: body.Page,
+		Pages:       common.PageArray(customerCount, body.PageSize, body.Page, 5),
+		Data:        customer,
+		LastPage:    int(math.Ceil(float64(customerCount) / float64(body.PageSize))),
 	})
 }
 

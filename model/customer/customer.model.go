@@ -51,15 +51,15 @@ type UpdateCustomerID struct {
 }
 
 type UpdateCustomerInput struct {
-	Name    string   `json:"name" bson:"name"`
-	Address string   `json:"address" bson:"address"`
-	TaxID   string   `json:"taxID" bson:"taxID"`
-	Emails  []string `json:"emails" bson:"emails" validate:"email"`
-	Phones  []string `json:"phones" bson:"phones" `
+	Name         string   `json:"name" bson:"name"`
+	Address      string   `json:"address" bson:"address"`
+	TaxID        string   `json:"taxID" bson:"taxID"`
+	AddEmails    []string `json:"addEmails" bson:"addEmails"`
+	RemoveEmails []string `json:"removeEmails" bson:"removeEmails"`
+	AddPhones    []string `json:"addPhones" bson:"addPhones"`
+	RemovePhones []string `json:"removePhones" bson:"removePhones"`
 }
 
 type DeleteCustomerInput struct {
 	CustomerID string `json:"customerID" bson:"customerID" validate:"required"`
 }
-
-

@@ -184,7 +184,6 @@ func DeleteUserTypeService(id model.DeleteUserTypeID) error {
 }
 
 func GetAllUserTypeCountService(input model.SearchPipeline) (int32, error) {
-
 	coll, err := configuration.ConnectToMongoDB()
 	defer coll.Disconnect(context.Background())
 	if err != nil {
@@ -207,7 +206,6 @@ func GetAllUserTypeCountService(input model.SearchPipeline) (int32, error) {
 	if err != nil {
 		return 0, err
 	}
-
 	if len(result) == 0 {
 		return 0, nil
 	}

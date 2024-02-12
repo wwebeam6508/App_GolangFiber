@@ -63,21 +63,18 @@ func GetUserTypeController(c *fiber.Ctx) error {
 	result := <-resultChan
 	allUserTypeCount := <-allUserTypeCountChan
 
-	pages := common.PageArray(allUserTypeCount, body.PageSize, body.Page, 5)
 	//filter rank
 	result, err = filterRankGetUserTypeController(c, body, result)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
-	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
-		Code:    fiber.StatusOK,
-		Message: "Success",
-		Data: bson.M{
-			"currentPage": body.Page,
-			"pages":       pages,
-			"data":        result,
-			"lastPage":    math.Ceil(float64(allUserTypeCount) / float64(body.PageSize)),
-		},
+	return c.Status(fiber.StatusOK).JSON(commonentity.PaginationResponse{
+		Code:        fiber.StatusOK,
+		Message:     "Success",
+		CurrentPage: body.Page,
+		Pages:       common.PageArray(allUserTypeCount, body.PageSize, body.Page, 5),
+		Data:        result,
+		LastPage:    int(math.Ceil(float64(allUserTypeCount) / float64(body.PageSize))),
 	})
 }
 

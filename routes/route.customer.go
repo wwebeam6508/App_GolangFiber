@@ -9,31 +9,31 @@ import (
 )
 
 func CustomerRoute(route fiber.Router) {
-	route.Get("/getCustomer", middleware.Authenication, func(c *fiber.Ctx) error {
+	route.Get("/get", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "Customer",
 			Name:      "CanView",
 		})
 	}, controller.GetCustomerController)
-	route.Get("/getCustomerByID", middleware.Authenication, func(c *fiber.Ctx) error {
+	route.Get("/getByID", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "Customer",
 			Name:      "CanEdit",
 		})
 	}, controller.GetCustomerByIDController)
-	route.Post("/addCustomer", middleware.Authenication, func(c *fiber.Ctx) error {
+	route.Post("/add", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "Customer",
 			Name:      "CanEdit",
 		})
 	}, controller.AddCustomerController)
-	route.Post("/updateCustomer", middleware.Authenication, func(c *fiber.Ctx) error {
+	route.Post("/update", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "Customer",
 			Name:      "CanEdit",
 		})
 	}, controller.UpdateCustomerController)
-	route.Delete("/deleteCustomer", middleware.Authenication, func(c *fiber.Ctx) error {
+	route.Delete("/delete", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "Customer",
 			Name:      "CanRemove",
