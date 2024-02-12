@@ -264,7 +264,7 @@ func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 			} else {
 				dateStartSearch, _ := time.Parse(time.RFC3339, split[0])
 				dateEndSearch, _ := time.Parse(time.RFC3339, split[1])
-				searchPipeline = append(searchPipeline, bson.M{searchFilter: bson.M{"$gte": primitive.NewDateTimeFromTime(dateStartSearch), "$lte": primitive.NewDateTimeFromTime(dateEndSearch)}})
+				searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: searchFilter, Value: bson.D{{Key: "$gte", Value: primitive.NewDateTimeFromTime(dateStartSearch)}, {Key: "$lte", Value: primitive.NewDateTimeFromTime(dateEndSearch)}}}}}})
 			}
 		} else {
 			searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: searchFilter, Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}}}})
