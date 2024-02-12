@@ -167,7 +167,7 @@ func DeleteCustomerController(c *fiber.Ctx) error {
 func getSearchPipeline(search, searchFilter string) bson.A {
 	pipeline := bson.A{}
 	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
-		pipeline = append(pipeline, bson.M{searchFilter: bson.M{"$regex": search, "$options": "i"}})
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "name", Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}}}})
 	}
 	return pipeline
 }

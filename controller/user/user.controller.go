@@ -208,7 +208,7 @@ func getSearchPipeline(search, searchFilter string) (bson.A, error) {
 				if err != nil {
 					return searchPipeline, exception.ValidationError{Message: "invalid date"}
 				}
-				searchPipeline = append(searchPipeline, bson.M{"createdAt": bson.M{"$gte": primitive.NewDateTimeFromTime(dateSearch)}})
+				searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "createdAt", Value: bson.D{{Key: "$gte", Value: primitive.NewDateTimeFromTime(dateSearch)}}}}}})
 			} else {
 				dateStartSearch, err := time.Parse(time.RFC3339, split[0])
 				if err != nil {

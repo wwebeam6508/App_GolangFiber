@@ -213,25 +213,37 @@ func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 			//$gte and $lte
 			pipeline = append(pipeline,
 				bson.D{
-					{Key: "listSum", Value: bson.D{
-						{Key: "$gte", Value: strings.Split(search, ",")[0]},
-						{Key: "$lte", Value: strings.Split(search, ",")[1]},
+					{Key: "$match", Value: bson.D{
+						{Key: "listSum", Value: bson.D{
+							{Key: "$gte", Value: strings.Split(search, ",")[0]},
+							{Key: "$lte", Value: strings.Split(search, ",")[1]},
+						}},
 					}},
 				},
 			)
 		} else if searchFilter == "date" {
-			lteValue := strings.Split(search, ",")[1]
-			if common.IsEmpty(lteValue) {
-				lteValue = primitive.NewDateTimeFromTime(time.Now()).Time().String()
+			split := strings.Split(search, ",")
+			if len(split) != 2 {
+				return pipeline, exception.ValidationError{Message: "invalid date"}
 			}
-			pipeline = append(pipeline,
-				bson.D{
-					{Key: searchFilter, Value: bson.D{
-						{Key: "$gte", Value: strings.Split(search, ",")[0]},
-						{Key: "$lte", Value: lteValue},
-					}},
-				},
-			)
+			if split[1] == "" {
+				//time Parse
+				dateSearch, err := time.Parse(time.RFC3339, split[0])
+				if err != nil {
+					return pipeline, exception.ValidationError{Message: "invalid date"}
+				}
+				pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "createdAt", Value: bson.D{{Key: "$gte", Value: primitive.NewDateTimeFromTime(dateSearch)}}}}}})
+			} else {
+				dateStartSearch, err := time.Parse(time.RFC3339, split[0])
+				if err != nil {
+					return pipeline, exception.ValidationError{Message: "invalid date"}
+				}
+				dateEndSearch, err := time.Parse(time.RFC3339, split[1])
+				if err != nil {
+					return pipeline, exception.ValidationError{Message: "invalid date"}
+				}
+				pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "createdAt", Value: bson.D{{Key: "$gte", Value: primitive.NewDateTimeFromTime(dateStartSearch)}, {Key: "$lte", Value: primitive.NewDateTimeFromTime(dateEndSearch)}}}}}})
+			}
 		} else {
 			pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: searchFilter, Value: bson.D{{Key: "$regex", Value: search}}}}}})
 		}
