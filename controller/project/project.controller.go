@@ -6,7 +6,6 @@ import (
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/project"
 	service "PBD_backend_go/service/project"
-	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -62,7 +61,6 @@ func GetProjectController(c *fiber.Ctx) error {
 	}
 	projectCount := <-projectCountChan
 	project := <-projectChan
-	fmt.Println(projectCount)
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "Success",

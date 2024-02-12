@@ -32,7 +32,7 @@ func GetUserRankByUserIDService(input model.GetUserTypeByUserIDInput) (model.Get
 	}}}
 	unwindStage := bson.D{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$userType"}}}}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
-		{Key: "userTypeID", Value: "$userType._id"},
+		{Key: "rank", Value: "$userType.rank"},
 	}}}
 
 	pipeline := bson.A{matchStage, addFieldsStage, lookupStage, unwindStage, projectStage}

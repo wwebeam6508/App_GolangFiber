@@ -69,7 +69,19 @@ func AddExpenseService(input model.AddExpenseInput) (primitive.ObjectID, error) 
 	for i := 0; i < len(input.Lists); i++ {
 		input.Lists[i].ID = primitive.NewObjectID()
 	}
-	res, err := ref.InsertOne(context.Background(), input)
+	addInput := bson.D{}
+	for i := 0; i < reflect.ValueOf(input).NumField(); i++ {
+		if !common.IsEmpty(reflect.ValueOf(input).Field(i).Interface()) {
+			if reflect.ValueOf(input).Type().Field(i).Name == "WorkRef" || reflect.ValueOf(input).Type().Field(i).Name == "CustomerRef" {
+				objectID, _ := primitive.ObjectIDFromHex(reflect.ValueOf(input).Field(i).Interface().(string))
+				addInput = append(addInput, bson.E{Key: reflect.ValueOf(input).Type().Field(i).Tag.Get("json"), Value: bson.D{{Key: "$ref", Value: reflect.ValueOf(input).Type().Field(i).Tag.Get("json")}, {Key: "$id", Value: objectID}}})
+				continue
+			}
+			addInput = append(addInput, bson.E{Key: reflect.ValueOf(input).Type().Field(i).Tag.Get("json"), Value: reflect.ValueOf(input).Field(i).Interface()})
+		}
+	}
+
+	res, err := ref.InsertOne(context.Background(), addInput)
 	if err != nil {
 		return primitive.NilObjectID, err
 	}

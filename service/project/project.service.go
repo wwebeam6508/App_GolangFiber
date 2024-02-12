@@ -141,7 +141,11 @@ func AddProjectService(input model.AddProjectInput) (primitive.ObjectID, error) 
 	addInput := bson.D{}
 	for i := 0; i < reflect.ValueOf(input).NumField(); i++ {
 		if reflect.ValueOf(input).Type().Field(i).Name != "Images" {
-			//append json
+			if reflect.ValueOf(input).Type().Field(i).Name == "Customer" {
+				objectID, _ := primitive.ObjectIDFromHex(input.Customer)
+				addInput = append(addInput, bson.E{Key: "customer", Value: bson.D{{Key: "$id", Value: objectID}}})
+				continue
+			}
 			addInput = append(addInput, bson.E{Key: reflect.ValueOf(input).Type().Field(i).Tag.Get("json"), Value: reflect.ValueOf(input).Field(i).Interface()})
 		}
 	}
@@ -166,6 +170,14 @@ func UpdateProjectService(input model.UpdateProjectInput, projectID string) erro
 	inputRef := reflect.ValueOf(input)
 	for i := 0; i < inputRef.NumField(); i++ {
 		if !common.IsEmpty(inputRef.Field(i).Interface()) {
+			if inputRef.Type().Field(i).Name == "Images" {
+				continue
+			}
+			if inputRef.Type().Field(i).Name == "Customer" {
+				objectID, _ := primitive.ObjectIDFromHex(inputRef.Field(i).Interface().(string))
+				update = append(update, bson.E{Key: "customer", Value: bson.D{{Key: "$id", Value: objectID}}})
+				continue
+			}
 			update = append(update, bson.E{Key: inputRef.Type().Field(i).Tag.Get("json"), Value: inputRef.Field(i).Interface()})
 		}
 	}

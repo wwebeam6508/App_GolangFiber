@@ -44,8 +44,8 @@ func GetUserService(input model.GetUserServiceInput, searchPipeline model.Search
 		{Key: "date", Value: "$createdAt"},
 	}}}
 	pipeline := bson.A{matchStage, addFieldsStage, lookupStage, unwindStage, projectStage, skipStage, limitStage}
-	if searchPipeline.Search != "" {
-		pipeline = append(pipeline, searchPipeline.SearchPipeline...)
+	if !common.IsEmpty(searchPipeline.Search) && len(searchPipeline.SearchPipeline) > 0 {
+		pipeline = append(pipeline[:2], append(searchPipeline.SearchPipeline, pipeline[2:]...)...)
 	}
 	if input.SortTitle != "" && input.SortType != "" {
 		var sortValue int
@@ -92,7 +92,7 @@ func GetUserByIDService(input model.GetUserByIDInput) (model.GetUserByIDServiceR
 	projectStage := bson.D{{Key: "$project", Value: bson.D{
 		{Key: "userID", Value: "$_id"},
 		{Key: "username", Value: 1},
-		{Key: "userTypeID", Value: "$userType._id"},
+		{Key: "userType", Value: "$userType._id"},
 	}}}
 	pipeline := bson.A{matchStage, addFieldsStage, lookupStage, unwindStage, projectStage}
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
@@ -155,7 +155,7 @@ func UpdateUserService(input model.UpdateUserInput, id model.UpdateUserID) error
 	reflectInput := reflect.ValueOf(input)
 	for i := 0; i < reflectInput.NumField(); i++ {
 		// if paasword or selfID or userID or userTypeID then continue
-		if reflectInput.Type().Field(i).Name == "Password" || reflectInput.Type().Field(i).Name == "SelfID" || reflectInput.Type().Field(i).Name == "UserTypeID" {
+		if reflectInput.Type().Field(i).Name == "Password" || reflectInput.Type().Field(i).Name == "UserTypeID" {
 			continue
 		}
 
@@ -164,7 +164,7 @@ func UpdateUserService(input model.UpdateUserInput, id model.UpdateUserID) error
 		}
 	}
 	// encode password
-	if input.Password != "" {
+	if !common.IsEmpty(input.Password) {
 		password, err := encryptPassword(input.Password)
 		if err != nil {
 			return err

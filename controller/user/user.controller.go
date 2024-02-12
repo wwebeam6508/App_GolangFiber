@@ -196,7 +196,7 @@ func getSearchPipeline(search, searchFilter string) (bson.A, error) {
 	searchPipeline := bson.A{}
 	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
 		if searchFilter == "userType" {
-			searchPipeline = append(searchPipeline, bson.M{"userType.name": bson.M{"$regex": search, "$options": "i"}})
+			searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "userType.name", Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}}}})
 		} else if searchFilter == "date" {
 			split := strings.Split(search, ",")
 			if len(split) != 2 {
