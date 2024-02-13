@@ -17,6 +17,7 @@ type Permissions struct {
 	Project  PermissionDetail `json:"project" bson:"project"`
 	Expense  PermissionDetail `json:"expense" bson:"expense"`
 	Customer PermissionDetail `json:"customer" bson:"customer"`
+	Employee PermissionDetail `json:"employee" bson:"employee"`
 }
 
 type UserType struct {
