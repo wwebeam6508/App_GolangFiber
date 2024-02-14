@@ -45,7 +45,8 @@ type AddEmployeeInput struct {
 	BornDate   time.Time        `json:"bornDate" bson:"bornDate" validate:"required"`
 	JoinedDate time.Time        `json:"joinedDate" bson:"joinedDate" validate:"required"`
 	HiredType  entity.HiredType `json:"hiredType" bson:"hiredType" validate:"required"`
-	Salary     float64          `json:"salary" bson:"salary" validate:"required"`
+	Salary     float64          `json:"salary" bson:"salary"`
+	Status     int              `json:"status" bson:"status"`
 }
 
 type UpdateEmployeeID struct {

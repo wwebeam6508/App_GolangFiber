@@ -93,6 +93,26 @@ func GetEmployeeByIDController(c *fiber.Ctx) error {
 	})
 }
 
+func AddEmployeeController(c *fiber.Ctx) error {
+	var body model.AddEmployeeInput
+	if err := c.BodyParser(&body); err != nil {
+		return err
+	}
+	err := common.Validate(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	employee, err := service.AddEmployeeService(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    employee,
+	})
+}
+
 func getSearchPipeline(search, searchFilter string) (bson.A, error) {
 	pipeline := bson.A{}
 	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
@@ -145,7 +165,7 @@ func getEmployeeBodyCondition(body model.GetEmployeeInput) model.GetEmployeeInpu
 		body.PageSize = 10
 	}
 	if body.SortTitle == "" {
-		body.SortTitle = "date"
+		body.SortTitle = "joinedDate"
 	}
 	if body.SortType == "" {
 		body.SortType = "desc"

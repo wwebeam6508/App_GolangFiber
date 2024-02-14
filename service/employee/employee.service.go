@@ -4,11 +4,13 @@ import (
 	"PBD_backend_go/common"
 	"PBD_backend_go/commonentity"
 	"PBD_backend_go/configuration"
+	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/employee"
 	"context"
 	"os"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetEmployeeService(input model.GetEmployeeInput, searchPipeline commonentity.SearchPipeline) ([]model.GetEmployeeResult, error) {
@@ -48,14 +50,14 @@ func GetEmployeeCountService(searchPipeline commonentity.SearchPipeline) (int32,
 	if err != nil {
 		return 0, err
 	}
-	var result []int32
+	var result []bson.M
 	if err = cursor.All(context.Background(), &result); err != nil {
 		return 0, err
 	}
 	if len(result) == 0 {
 		return 0, nil
 	}
-	return result[0], nil
+	return result[0]["count"].(int32), nil
 }
 
 func GetEmployeeByIDService(input model.GetEmployeeByIDInput) (model.GetEmployeeByIDResult, error) {
@@ -65,15 +67,49 @@ func GetEmployeeByIDService(input model.GetEmployeeByIDInput) (model.GetEmployee
 		return model.GetEmployeeByIDResult{}, err
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("employee")
-	var result model.GetEmployeeByIDResult
-	err = ref.FindOne(context.Background(), bson.M{"_id": input.EmployeeID}).Decode(&result)
-	if err != nil {
+	employeeIDObjectID, _ := primitive.ObjectIDFromHex(input.EmployeeID)
+	var result []model.GetEmployeeByIDResult
+	matchStage := bson.M{"$match": bson.M{"_id": employeeIDObjectID, "status": 1}}
+	projectStage := bson.M{"$project": bson.M{
+		"employeeID": "$_id",
+		"firstName":  1,
+		"lastName":   1,
+		"joinedDate": 1,
+		"bornDate":   1,
+		"hiredType":  1,
+		"salary":     1,
+	}}
+	cursor, err := ref.Aggregate(context.Background(), bson.A{matchStage, projectStage})
+
+	if err = cursor.All(context.Background(), &result); err != nil {
 		return model.GetEmployeeByIDResult{}, err
 	}
-	return result, nil
+	if len(result) == 0 {
+		return model.GetEmployeeByIDResult{}, exception.NotFoundError{Message: "employee not found"}
+	}
+	return result[0], nil
 }
 
-func getPipelineGetEmployee(input model.GetEmployeeInput, searchPipeline commonentity.SearchPipeline) []interface{} {
+func AddEmployeeService(input model.AddEmployeeInput) (primitive.ObjectID, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
+	if err != nil {
+		return primitive.ObjectID{}, err
+	}
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("employee")
+	input.Status = 1
+	res, err := ref.InsertOne(context.Background(), input)
+	if err != nil {
+		return primitive.ObjectID{}, err
+	}
+	if res.InsertedID == nil {
+		return primitive.ObjectID{}, exception.ValidationError{Message: "insertedID is nil"}
+	}
+	return res.InsertedID.(primitive.ObjectID), nil
+
+}
+
+func getPipelineGetEmployee(input model.GetEmployeeInput, searchPipeline commonentity.SearchPipeline) bson.A {
 	matchState := bson.M{"$match": bson.M{"status": 1}}
 	if input.Page > 0 {
 		input.Page = input.Page - 1
@@ -93,10 +129,10 @@ func getPipelineGetEmployee(input model.GetEmployeeInput, searchPipeline commone
 		"employeeID": "$_id",
 		"firstName":  1,
 		"lastName":   1,
-		"bornDate":   0,
 		"joinedDate": 1,
 		"hiredType":  1,
-		"salary":     1}}
+		"salary":     1,
+	}}
 	pipeline := bson.A{matchState, skipState, limitState, sortState, projectState}
 	if !common.IsEmpty(searchPipeline.SearchPipeline) {
 		pipeline = append(pipeline[:1], append(searchPipeline.SearchPipeline, pipeline[1:]...)...)

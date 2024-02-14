@@ -21,4 +21,10 @@ func EmployeeRoute(route fiber.Router) {
 			Name:      "CanEdit",
 		})
 	}, controller.GetEmployeeByIDController)
+	route.Post("/add", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Employee",
+			Name:      "CanEdit",
+		})
+	}, controller.AddEmployeeController)
 }
