@@ -72,6 +72,27 @@ func GetEmployeeController(c *fiber.Ctx) error {
 
 }
 
+func GetEmployeeByIDController(c *fiber.Ctx) error {
+	var query model.GetEmployeeByIDInput
+	if err := c.QueryParser(&query); err != nil {
+		return err
+	}
+	err := common.Validate(query)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+
+	employee, err := service.GetEmployeeByIDService(query)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    employee,
+	})
+}
+
 func getSearchPipeline(search, searchFilter string) (bson.A, error) {
 	pipeline := bson.A{}
 	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {

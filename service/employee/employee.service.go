@@ -58,6 +58,21 @@ func GetEmployeeCountService(searchPipeline commonentity.SearchPipeline) (int32,
 	return result[0], nil
 }
 
+func GetEmployeeByIDService(input model.GetEmployeeByIDInput) (model.GetEmployeeByIDResult, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
+	if err != nil {
+		return model.GetEmployeeByIDResult{}, err
+	}
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("employee")
+	var result model.GetEmployeeByIDResult
+	err = ref.FindOne(context.Background(), bson.M{"_id": input.EmployeeID}).Decode(&result)
+	if err != nil {
+		return model.GetEmployeeByIDResult{}, err
+	}
+	return result, nil
+}
+
 func getPipelineGetEmployee(input model.GetEmployeeInput, searchPipeline commonentity.SearchPipeline) []interface{} {
 	matchState := bson.M{"$match": bson.M{"status": 1}}
 	if input.Page > 0 {
