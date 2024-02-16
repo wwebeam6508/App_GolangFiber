@@ -27,4 +27,17 @@ func EmployeeRoute(route fiber.Router) {
 			Name:      "CanEdit",
 		})
 	}, controller.AddEmployeeController)
+	route.Put("/update", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Employee",
+			Name:      "CanEdit", 
+		})
+	}, controller.UpdateEmployeeController)
+	route.Delete("/delete", middleware.Authenication, func(c *fiber.Ctx) error {
+		return middleware.Permission(c, model.PermissionInput{
+			GroupName: "Employee",
+			Name:      "CanRemove",
+		})
+	}, controller.DeleteEmployeeController)
+
 }

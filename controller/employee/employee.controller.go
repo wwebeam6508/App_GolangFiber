@@ -3,6 +3,7 @@ package controller
 import (
 	"PBD_backend_go/common"
 	"PBD_backend_go/commonentity"
+	"PBD_backend_go/entity"
 	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/employee"
 	service "PBD_backend_go/service/employee"
@@ -86,6 +87,8 @@ func GetEmployeeByIDController(c *fiber.Ctx) error {
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}
+	employee.HiredTypeOptions = entity.HiredTypeOptions
+	employee.SexOptions = entity.SexOptions
 	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "Success",
@@ -110,6 +113,54 @@ func AddEmployeeController(c *fiber.Ctx) error {
 		Code:    fiber.StatusOK,
 		Message: "Success",
 		Data:    employee,
+	})
+}
+
+func UpdateEmployeeController(c *fiber.Ctx) error {
+	var query model.UpdateEmployeeID
+	if err := c.QueryParser(&query); err != nil {
+		return err
+	}
+	err := common.Validate(query)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	var body model.UpdateEmployeeInput
+	if err := c.BodyParser(&body); err != nil {
+		return err
+	}
+	err = common.Validate(body)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	err = service.UpdateEmployeeService(body, query)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    nil,
+	})
+}
+
+func DeleteEmployeeController(c *fiber.Ctx) error {
+	var query model.UpdateEmployeeID
+	if err := c.QueryParser(&query); err != nil {
+		return err
+	}
+	err := common.Validate(query)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	err = service.DeleteEmployeeService(query)
+	if err != nil {
+		return exception.ErrorHandler(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(commonentity.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    nil,
 	})
 }
 

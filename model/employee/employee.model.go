@@ -21,13 +21,18 @@ type GetEmployeeByIDInput struct {
 }
 
 type GetEmployeeByIDResult struct {
-	EmployeeID primitive.ObjectID `json:"employeeID" bson:"employeeID"`
-	FirstName  string             `json:"firstName" bson:"firstName"`
-	LastName   string             `json:"lastName" bson:"lastName"`
-	JoinedDate time.Time          `json:"joinedDate" bson:"joinedDate"`
-	BornDate   time.Time          `json:"bornDate" bson:"bornDate"`
-	HiredType  entity.HiredType   `json:"hiredType" bson:"hiredType"`
-	Salary     float64            `json:"salary" bson:"salary"`
+	EmployeeID       primitive.ObjectID `json:"employeeID" bson:"employeeID"`
+	FirstName        string             `json:"firstName" bson:"firstName"`
+	LastName         string             `json:"lastName" bson:"lastName"`
+	JoinedDate       time.Time          `json:"joinedDate" bson:"joinedDate"`
+	BornDate         time.Time          `json:"bornDate" bson:"bornDate"`
+	HiredType        entity.HiredType   `json:"hiredType" bson:"hiredType"`
+	Salary           float64            `json:"salary" bson:"salary"`
+	Address          string             `json:"address" bson:"address"`
+	CitizenID        string             `json:"citizenID" bson:"citizenID"`
+	Sex              string             `json:"sex" bson:"sex"`
+	HiredTypeOptions []entity.HiredType `json:"hiredTypeOptions" bson:"hiredTypeOptions"`
+	SexOptions       []entity.Sex       `json:"sexOptions" bson:"sexOptions"`
 }
 
 type GetEmployeeResult struct {
@@ -37,6 +42,7 @@ type GetEmployeeResult struct {
 	JoinedDate time.Time          `json:"joinedDate" bson:"joinedDate"`
 	HiredType  entity.HiredType   `json:"hiredType" bson:"hiredType"`
 	Salary     float64            `json:"salary" bson:"salary"`
+	Sex        string             `json:"sex" bson:"sex"`
 }
 
 type AddEmployeeInput struct {
@@ -45,6 +51,9 @@ type AddEmployeeInput struct {
 	BornDate   time.Time        `json:"bornDate" bson:"bornDate" validate:"required"`
 	JoinedDate time.Time        `json:"joinedDate" bson:"joinedDate" validate:"required"`
 	HiredType  entity.HiredType `json:"hiredType" bson:"hiredType" validate:"required"`
+	Sex        string           `json:"sex" bson:"sex" validate:"required"`
+	CitizenID  string           `json:"citizenID" bson:"citizenID" validate:"required"`
+	Address    string           `json:"address" bson:"address"`
 	Salary     float64          `json:"salary" bson:"salary"`
 	Status     int              `json:"status" bson:"status"`
 }
@@ -59,6 +68,9 @@ type UpdateEmployeeInput struct {
 	BornDate   time.Time        `json:"bornDate" bson:"bornDate"`
 	JoinedDate time.Time        `json:"joinedDate" bson:"joinedDate"`
 	HiredType  entity.HiredType `json:"hiredType" bson:"hiredType"`
+	Sex        string           `json:"sex" bson:"sex"`
+	CitizenID  string           `json:"citizenID" bson:"citizenID"`
+	Address    string           `json:"address" bson:"address"`
 	Salary     float64          `json:"salary" bson:"salary"`
 }
 

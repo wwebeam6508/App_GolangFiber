@@ -8,6 +8,7 @@ import (
 	model "PBD_backend_go/model/employee"
 	"context"
 	"os"
+	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -78,8 +79,14 @@ func GetEmployeeByIDService(input model.GetEmployeeByIDInput) (model.GetEmployee
 		"bornDate":   1,
 		"hiredType":  1,
 		"salary":     1,
+		"address":    1,
+		"citizenID":  1,
+		"sex":        1,
 	}}
 	cursor, err := ref.Aggregate(context.Background(), bson.A{matchStage, projectStage})
+	if err != nil {
+		return model.GetEmployeeByIDResult{}, err
+	}
 
 	if err = cursor.All(context.Background(), &result); err != nil {
 		return model.GetEmployeeByIDResult{}, err
@@ -109,6 +116,45 @@ func AddEmployeeService(input model.AddEmployeeInput) (primitive.ObjectID, error
 
 }
 
+func UpdateEmployeeService(input model.UpdateEmployeeInput, employee model.UpdateEmployeeID) error {
+	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
+	if err != nil {
+		return err
+	}
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("employee")
+	employeeIDObjectID, _ := primitive.ObjectIDFromHex(employee.EmployeeID)
+	updateStage := bson.A{}
+	for i := 0; i < reflect.TypeOf(input).NumField(); i++ {
+		field := reflect.TypeOf(input).Field(i)
+		value := reflect.ValueOf(input).Field(i).Interface()
+		if !common.IsEmpty(value) {
+			updateStage = append(updateStage, bson.M{"$set": bson.M{field.Tag.Get("bson"): value}})
+		}
+	}
+	_, err = ref.UpdateOne(context.Background(), bson.M{"_id": employeeIDObjectID, "status": 1}, updateStage)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteEmployeeService(employee model.UpdateEmployeeID) error {
+	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
+	if err != nil {
+		return err
+	}
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("employee")
+	employeeIDObjectID, _ := primitive.ObjectIDFromHex(employee.EmployeeID)
+	updateStage := bson.A{bson.M{"$set": bson.M{"status": 0}}}
+	_, err = ref.UpdateOne(context.Background(), bson.M{"_id": employeeIDObjectID, "status": 1}, updateStage)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func getPipelineGetEmployee(input model.GetEmployeeInput, searchPipeline commonentity.SearchPipeline) bson.A {
 	matchState := bson.M{"$match": bson.M{"status": 1}}
 	if input.Page > 0 {
@@ -132,6 +178,7 @@ func getPipelineGetEmployee(input model.GetEmployeeInput, searchPipeline commone
 		"joinedDate": 1,
 		"hiredType":  1,
 		"salary":     1,
+		"sex":        1,
 	}}
 	pipeline := bson.A{matchState, skipState, limitState, sortState, projectState}
 	if !common.IsEmpty(searchPipeline.SearchPipeline) {

@@ -7,10 +7,21 @@ import (
 type HiredType string
 
 const (
-	Contract HiredType = "contract"
-	FullTime HiredType = "fulltime"
-	Gone     HiredType = "gone"
+	Contract HiredType = "สัญญาจ้าง"
+	FullTime HiredType = "ประจำ"
+	Gone     HiredType = "ออก"
 )
+
+type Sex string
+
+const (
+	Male   Sex = "ชาย"
+	Female Sex = "หญิง"
+)
+
+var SexOptions = []Sex{Male, Female}
+
+var HiredTypeOptions = []HiredType{Contract, FullTime, Gone}
 
 type Employee struct {
 	EmployeeID string    `json:"employeeID" bson:"employeeID"`
@@ -20,4 +31,7 @@ type Employee struct {
 	JoinedDate time.Time `json:"joinedDate" bson:"joinedDate"`
 	HiredType  HiredType `json:"hiredType" bson:"hiredType"`
 	Salary     float64   `json:"salary" bson:"salary"`
+	Address    string    `json:"address" bson:"address"`
+	CitizenID  string    `json:"citizenID" bson:"citizenID"`
+	Sex        string    `json:"sex" bson:"sex"`
 }
