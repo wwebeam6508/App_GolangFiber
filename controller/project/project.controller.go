@@ -233,20 +233,20 @@ func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 		} else if searchFilter == "profit" {
 			// split search by comma
 			split := strings.Split(search, ",")
-			if len(split) != 2 {
-				return searchPipeline, exception.ValidationError{Message: "invalid profit"}
-			}
 			// convert to float
-			profitStart, err := strconv.ParseFloat(split[0], 64)
-			if err != nil {
+			profitStart, _ := strconv.ParseFloat(split[0], 64)
+			profitEnd, _ := strconv.ParseFloat(split[1], 64)
+			if profitStart > profitEnd {
 				return searchPipeline, exception.ValidationError{Message: "invalid profit"}
 			}
-			profitEnd, err := strconv.ParseFloat(split[1], 64)
-			if err != nil {
-				return searchPipeline, exception.ValidationError{Message: "invalid profit"}
+			if common.IsEmpty(profitStart) {
+				searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "profit", Value: bson.D{{Key: "$lte", Value: profitEnd}}}}}})
+			} else if common.IsEmpty(profitEnd) {
+				searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "profit", Value: bson.D{{Key: "$gte", Value: profitStart}}}}}})
+			} else {
+				// add to pipeline
+				searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "profit", Value: bson.D{{Key: "$gte", Value: profitStart}, {Key: "$lte", Value: profitEnd}}}}}})
 			}
-			// add to pipeline
-			searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "profit", Value: bson.D{{Key: "$gte", Value: profitStart}, {Key: "$lte", Value: profitEnd}}}}}})
 
 		} else if searchFilter == "date" || searchFilter == "dateEnd" {
 			split := strings.Split(search, ",")

@@ -178,3 +178,4 @@ func GenerateRandomColor() string {
 	b := rand.Intn(255)
 	return fmt.Sprintf("rgb(%d,%d,%d)", r, g, b)
 }
+

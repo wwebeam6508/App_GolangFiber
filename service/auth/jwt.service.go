@@ -54,7 +54,7 @@ func VerifyJWT(tokenString string) (*jwt.Token, error) {
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, exception.ValidationError{Message: "invalid token"}
+			return nil, exception.UnauthorizedError{Message: "invalid token or expired"}
 		}
 		return []byte(secretKey), nil
 	})

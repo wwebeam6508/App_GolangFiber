@@ -183,8 +183,8 @@ func RemoveRefreshTokenService(userID string) error {
 	if err != nil {
 		return err
 	}
-	filter := bson.D{{"_id", userIDObjectID}}
-	update := bson.D{{"$set", bson.D{{"refreshToken", ""}}}}
+	filter := bson.M{"_id": userIDObjectID}
+	update := bson.M{"$set": bson.M{"refreshToken": ""}}
 	collection := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users")
 	_, err = collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {

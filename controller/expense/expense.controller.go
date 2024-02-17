@@ -7,6 +7,7 @@ import (
 	model "PBD_backend_go/model/expense"
 	service "PBD_backend_go/service/expense"
 	"math"
+	"strconv"
 	"strings"
 	"time"
 
@@ -196,29 +197,44 @@ func getSearchPipeline(search string, searchFilter string) (bson.A, error) {
 				{Key: "$regex", Value: search},
 			}}}}})
 		} else if searchFilter == "expense" {
-			addField := bson.D{
-				{Key: "listSum", Value: bson.D{
-					{Key: "$reduce", Value: bson.D{
-						{Key: "input", Value: "$lists"},
-						{Key: "initialValue", Value: 0},
-						{Key: "in", Value: bson.D{
-							{Key: "$add", Value: bson.A{"$$value", "$$this.price"}},
-						}},
-					}},
-				}},
-			}
-			pipeline = append(pipeline, bson.D{{Key: "$addFields", Value: addField}})
-			//$gte and $lte
+			//add field that sum of lists.price
 			pipeline = append(pipeline,
-				bson.D{
-					{Key: "$match", Value: bson.D{
-						{Key: "listSum", Value: bson.D{
-							{Key: "$gte", Value: strings.Split(search, ",")[0]},
-							{Key: "$lte", Value: strings.Split(search, ",")[1]},
-						}},
-					}},
+				bson.M{
+					"$addFields": bson.M{
+						"listSum": bson.M{
+							"$reduce": bson.M{
+								"input":        "$lists",
+								"initialValue": 0,
+								"in": bson.M{
+									"$add": bson.A{"$$value", "$$this.price"},
+								},
+							},
+						},
+					},
 				},
 			)
+			split := strings.Split(search, ",")
+			startExpense, _ := strconv.ParseFloat(split[0], 64)
+			endExpense, _ := strconv.ParseFloat(split[1], 64)
+			if startExpense > endExpense {
+				return pipeline, exception.ValidationError{Message: "invalid expense"}
+			}
+			if common.IsEmpty(startExpense) {
+				pipeline = append(pipeline, bson.M{"$match": bson.M{"listSum": bson.M{"$lte": endExpense}}})
+			} else if common.IsEmpty(endExpense) {
+				pipeline = append(pipeline, bson.M{"$match": bson.M{"listSum": bson.M{"$gte": startExpense}}})
+			} else {
+				pipeline = append(pipeline,
+					bson.D{
+						{Key: "$match", Value: bson.D{
+							{Key: "listSum", Value: bson.D{
+								{Key: "$gte", Value: startExpense},
+								{Key: "$lte", Value: endExpense},
+							}},
+						}},
+					},
+				)
+			}
 		} else if searchFilter == "date" {
 			split := strings.Split(search, ",")
 			if len(split) != 2 {

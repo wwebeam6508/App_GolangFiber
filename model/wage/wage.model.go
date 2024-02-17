@@ -31,5 +31,34 @@ type AddWageInput struct {
 		EmployeeID string  `json:"employeeID" bson:"employeeID"`
 		Wage       float64 `json:"wage" bson:"wage"`
 	} `json:"employee" bson:"employee" validate:"required"`
-	Date string `json:"date" bson:"date" validate:"required"`
+	Date time.Time `json:"date" bson:"date" validate:"required"`
+}
+
+type AddWageInputMongo struct {
+	Employee []struct {
+		EmployeeID primitive.ObjectID `json:"employeeID" bson:"employeeID"`
+		Wage       float64            `json:"wage" bson:"wage"`
+	} `json:"employee" bson:"employee" validate:"required"`
+	Date   time.Time `json:"date" bson:"date" validate:"required"`
+	Status int       `json:"status" bson:"status" validate:"required"`
+}
+
+type AddWageResult struct {
+	WageID primitive.ObjectID `json:"wageID" bson:"wageID"`
+}
+
+type UpdateWageID struct {
+	WageID string `json:"wageID" bson:"wageID" validate:"required"`
+}
+
+type UpdateWageInput struct {
+	AddEmployee []struct {
+		EmployeeID string  `json:"employeeID" bson:"employeeID"`
+		Wage       float64 `json:"wage" bson:"wage"`
+	} `json:"addEmployee" bson:"addEmployee"`
+	RemoveEmployee []string `json:"removeEmployee" bson:"removeEmployee"`
+}
+
+type DeleteWageInput struct {
+	WageID string `json:"wageID" bson:"wageID" validate:"required"`
 }
