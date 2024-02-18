@@ -95,15 +95,28 @@ func UpdateWageService(inputID model.UpdateWageID, input model.UpdateWageInput) 
 			updateFields = append(updateFields, bson.M{"$set": bson.M{v.Type().Field(i).Tag.Get("json"): v.Field(i).Interface()}})
 		}
 	}
+	WageIDObject, err := primitive.ObjectIDFromHex(inputID.WageID)
+	if err != nil {
+		return err
+	}
 	if len(updateFields) != 0 {
-		_, err = ref.UpdateOne(context.Background(), bson.M{"_id": inputID.WageID, "status": 1}, bson.M{"$set": updateFields})
+		_, err = ref.UpdateOne(context.Background(), bson.M{"_id": WageIDObject, "status": 1}, bson.M{"$set": updateFields})
 		if err != nil {
 			return err
 		}
 	}
 	//remove employee
 	if len(input.RemoveEmployee) > 0 {
-		_, err = ref.UpdateOne(context.Background(), bson.M{"_id": inputID.WageID, "status": 1}, bson.M{"$pull": bson.M{"employee": bson.M{"employeeID": bson.M{"$in": input.RemoveEmployee}}}})
+		//turn removeEmployee to ObjectID
+		removeEmployee := bson.A{}
+		for _, v := range input.RemoveEmployee {
+			employeeID, err := primitive.ObjectIDFromHex(v)
+			if err != nil {
+				return err
+			}
+			removeEmployee = append(removeEmployee, employeeID)
+		}
+		_, err = ref.UpdateOne(context.Background(), bson.M{"_id": WageIDObject, "status": 1}, bson.M{"$pull": bson.M{"employee": bson.M{"employeeID": bson.M{"$in": removeEmployee}}}})
 		if err != nil {
 			return err
 		}
@@ -118,7 +131,7 @@ func UpdateWageService(inputID model.UpdateWageID, input model.UpdateWageInput) 
 			}
 			addEmployee = append(addEmployee, bson.M{"employeeID": employeeID, "wage": v.Wage})
 		}
-		_, err = ref.UpdateOne(context.Background(), bson.M{"_id": inputID.WageID, "status": 1}, bson.M{"$push": bson.M{"employee": bson.M{"$each": addEmployee}}})
+		_, err = ref.UpdateOne(context.Background(), bson.M{"_id": WageIDObject, "status": 1}, bson.M{"$push": bson.M{"employee": bson.M{"$each": addEmployee}}})
 		if err != nil {
 			return err
 		}
@@ -133,7 +146,11 @@ func DeleteWageService(input model.DeleteWageInput) error {
 		return err
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("wage")
-	_, err = ref.UpdateOne(context.Background(), bson.M{"_id": input.WageID, "status": 1}, bson.M{"$set": bson.M{"status": 0}})
+	WageIDObject, err := primitive.ObjectIDFromHex(input.WageID)
+	if err != nil {
+		return err
+	}
+	_, err = ref.UpdateOne(context.Background(), bson.M{"_id": WageIDObject, "status": 1}, bson.M{"$set": bson.M{"status": 0}})
 	if err != nil {
 		return err
 	}
