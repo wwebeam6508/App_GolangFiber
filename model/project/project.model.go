@@ -45,13 +45,15 @@ type GetProjectByIDResult struct {
 }
 
 type AddProjectInput struct {
-	Title    string    `json:"title" bson:"title" validate:"required"`
-	Date     time.Time `json:"date" bson:"date" validate:"required"`
-	Profit   float64   `json:"profit" bson:"profit" validate:"required"`
-	DateEnd  time.Time `json:"dateEnd" bson:"dateEnd" validate:"required"`
-	Detail   string    `json:"detail" bson:"detail"`
-	Customer string    `json:"customer" bson:"customer" validate:"required"`
-	Images   []string  `json:"images" bson:"images"`
+	Title     string    `json:"title" bson:"title" validate:"required"`
+	Date      time.Time `json:"date" bson:"date" validate:"required"`
+	Profit    float64   `json:"profit" bson:"profit" validate:"required"`
+	DateEnd   time.Time `json:"dateEnd" bson:"dateEnd" validate:"required"`
+	Detail    string    `json:"detail" bson:"detail"`
+	Customer  string    `json:"customer" bson:"customer" validate:"required"`
+	Images    []string  `json:"images" bson:"images"`
+	Status    int       `json:"status" bson:"status"`
+	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
 }
 
 type UpdateProjectID struct {
@@ -59,13 +61,14 @@ type UpdateProjectID struct {
 }
 
 type UpdateProjectInput struct {
-	Title    string    `json:"title" bson:"title"`
-	Date     time.Time `json:"date" bson:"date"`
-	Profit   float64   `json:"profit" bson:"profit"`
-	DateEnd  time.Time `json:"dateEnd" bson:"dateEnd"`
-	Detail   string    `json:"detail" bson:"detail"`
-	Customer string    `json:"customer" bson:"customer"`
-	Images   []string  `json:"images" bson:"images"`
+	Title     string    `json:"title" bson:"title"`
+	Date      time.Time `json:"date" bson:"date"`
+	Profit    float64   `json:"profit" bson:"profit"`
+	DateEnd   time.Time `json:"dateEnd" bson:"dateEnd"`
+	Detail    string    `json:"detail" bson:"detail"`
+	Customer  string    `json:"customer" bson:"customer"`
+	Images    []string  `json:"images" bson:"images"`
+	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
 }
 
 type DeleteProjectInput struct {

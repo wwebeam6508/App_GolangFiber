@@ -4,10 +4,12 @@ import (
 	"PBD_backend_go/common"
 	"PBD_backend_go/commonentity"
 	"PBD_backend_go/configuration"
+	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/wage"
 	"context"
 	"os"
 	"reflect"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -39,12 +41,40 @@ func GetWageByIDService(input model.GetWageByIDInput) (model.GetWageByIDResult, 
 		return model.GetWageByIDResult{}, err
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("wage")
-	var result model.GetWageByIDResult
-	err = ref.FindOne(context.Background(), bson.M{"_id": input.WageID, "status": 1}).Decode(&result)
+	var result []model.GetWageByIDResult
+	WageIDObject, err := primitive.ObjectIDFromHex(input.WageID)
 	if err != nil {
 		return model.GetWageByIDResult{}, err
 	}
-	return result, nil
+	matchStage := bson.M{"$match": bson.M{"_id": WageIDObject, "status": 1}}
+	lookupStage := bson.M{"$lookup": bson.M{"from": "employee", "localField": "employee.employeeID", "foreignField": "_id", "as": "employeeDetails"}}
+	projectStatge := bson.M{"$project": bson.M{
+		"wageID": "$_id",
+		"date":   1,
+		"employee": bson.M{
+			"$map": bson.M{
+				"input": "$employee",
+				"as":    "emp",
+				"in": bson.M{
+					"employeeID": "$$emp.employeeID",
+					"wage":       "$$emp.wage",
+					"employeeDetails": bson.M{
+						"$arrayElemAt": bson.A{
+							"$employeeDetails", bson.M{
+								"$indexOfArray": bson.A{
+									"$employeeDetails._id", "$$emp.employeeID"}}}},
+				}}},
+	}}
+	pipeline := bson.A{matchStage, lookupStage, projectStatge}
+	cursor, err := ref.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return model.GetWageByIDResult{}, err
+	}
+	if err = cursor.All(context.Background(), &result); err != nil {
+		return model.GetWageByIDResult{}, err
+	}
+
+	return result[0], nil
 }
 
 func AddWageService(input model.AddWageInput) (model.AddWageResult, error) {
@@ -84,6 +114,7 @@ func UpdateWageService(inputID model.UpdateWageID, input model.UpdateWageInput) 
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("wage")
 	//reflect of input get numfield
+	input.UpdatedAt = time.Now()
 	v := reflect.ValueOf(input)
 	updateFields := bson.A{}
 	for i := 0; i < v.NumField(); i++ {
@@ -100,10 +131,14 @@ func UpdateWageService(inputID model.UpdateWageID, input model.UpdateWageInput) 
 		return err
 	}
 	if len(updateFields) != 0 {
-		_, err = ref.UpdateOne(context.Background(), bson.M{"_id": WageIDObject, "status": 1}, bson.M{"$set": updateFields})
+		res, err := ref.UpdateOne(context.Background(), bson.M{"_id": WageIDObject, "status": 1}, bson.M{"$set": updateFields})
 		if err != nil {
 			return err
 		}
+		if res.MatchedCount == 0 {
+			return exception.NotFoundError{Message: "wage not found"}
+		}
+
 	}
 	//remove employee
 	if len(input.RemoveEmployee) > 0 {

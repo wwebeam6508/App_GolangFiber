@@ -139,6 +139,7 @@ func UpdateUserTypeService(input model.UpdateUserTypeInput, id model.UpdateUserT
 		return exception.ValidationError{Message: "invalid userTypeID"}
 	}
 	// check each field that not empty of input
+	input.UpdatedAt = time.Now()
 	updateField := bson.D{}
 	//dynamic check by for loop
 	refValue := reflect.ValueOf(input)

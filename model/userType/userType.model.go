@@ -54,6 +54,7 @@ type UpdateUserTypeInput struct {
 	Name       string             `json:"name" bson:"name"`
 	Permission entity.Permissions `json:"permission" bson:"permission"`
 	Rank       int32              `json:"rank" bson:"rank"`
+	UpdatedAt  time.Time          `json:"updatedAt" bson:"updatedAt"`
 }
 
 type DeleteUserTypeID struct {

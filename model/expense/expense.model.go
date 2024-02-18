@@ -56,6 +56,7 @@ type AddExpenseInput struct {
 	WorkRef     string        `json:"workRef" bson:"workRef"`
 	CustomerRef string        `json:"customerRef" bson:"customerRef" `
 	Status      int           `json:"status" bson:"status"`
+	CreatedAt   time.Time     `json:"createdAt" bson:"createdAt"`
 }
 
 type UpdateExpenseID struct {
@@ -71,6 +72,7 @@ type UpdateExpenseInput struct {
 	Detail      string        `json:"detail" bson:"detail"`
 	WorkRef     string        `json:"workRef" bson:"workRef"`
 	CustomerRef string        `json:"customerRef" bson:"customerRef"`
+	UpdatedAt   time.Time     `json:"updatedAt" bson:"updatedAt"`
 }
 
 type RemoveList struct {

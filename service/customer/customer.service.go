@@ -8,6 +8,7 @@ import (
 	"context"
 	"os"
 	"reflect"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -134,15 +135,10 @@ func AddCustomerService(input model.AddCustomerInput) (primitive.ObjectID, error
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
+	input.Status = 1
+	input.CreatedAt = time.Now()
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("customers")
-	insertResult, err := ref.InsertOne(context.Background(), bson.D{
-		{Key: "name", Value: input.Name},
-		{Key: "address", Value: input.Address},
-		{Key: "taxID", Value: input.TaxID},
-		{Key: "emails", Value: input.Emails},
-		{Key: "phones", Value: input.Phones},
-		{Key: "status", Value: 1},
-	})
+	insertResult, err := ref.InsertOne(context.Background(), input)
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
@@ -160,6 +156,7 @@ func UpdateCustomerService(input model.UpdateCustomerInput, updateCustomerID mod
 	if err != nil {
 		return exception.ValidationError{Message: "invalid customerID"}
 	}
+	input.UpdatedAt = time.Now()
 	// check each field that not empty of input
 	updateField := bson.D{}
 	//dynamic check by for loop

@@ -8,6 +8,7 @@ import (
 	"context"
 	"os"
 	"reflect"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -63,8 +64,8 @@ func AddExpenseService(input model.AddExpenseInput) (primitive.ObjectID, error) 
 		return primitive.NilObjectID, err
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("expenses")
-	// add status
 	input.Status = 1
+	input.CreatedAt = time.Now()
 
 	for i := 0; i < len(input.Lists); i++ {
 		input.Lists[i].ID = primitive.NewObjectID()
@@ -96,6 +97,7 @@ func UpdateExpenseService(input model.UpdateExpenseInput, expenseID string) erro
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("expenses")
 	expenseIDObjectID, _ := primitive.ObjectIDFromHex(expenseID)
+	input.UpdatedAt = time.Now()
 
 	//check input is empty or not
 	updateInput := bson.D{}

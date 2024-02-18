@@ -46,9 +46,11 @@ type GetUserByIDInput struct {
 }
 
 type AddUserInput struct {
-	Username   string `json:"username" bson:"username" validate:"required"`
-	Password   string `json:"password" bson:"password" validate:"required"`
-	UserTypeID string `json:"userType" bson:"userType" validate:"required"`
+	Username   string    `json:"username" bson:"username" validate:"required"`
+	Password   string    `json:"password" bson:"password" validate:"required"`
+	UserTypeID string    `json:"userType" bson:"userType" validate:"required"`
+	Status     int       `json:"status" bson:"status"`
+	CreatedAt  time.Time `json:"createdAt" bson:"createdAt"`
 }
 
 type UpdateUserID struct {
@@ -56,10 +58,11 @@ type UpdateUserID struct {
 }
 
 type UpdateUserInput struct {
-	Username   string `json:"username" bson:"username"`
-	UserTypeID string `json:"userType" bson:"userType"`
-	Password   string `json:"password" bson:"password"`
-	SelfID     string `json:"itSelftID" bson:"itSelftID"`
+	Username   string    `json:"username" bson:"username"`
+	UserTypeID string    `json:"userType" bson:"userType"`
+	Password   string    `json:"password" bson:"password"`
+	SelfID     string    `json:"itSelftID" bson:"itSelftID"`
+	UpdatedAt  time.Time `json:"updatedAt" bson:"updatedAt"`
 }
 
 type DeleteUserInput struct {

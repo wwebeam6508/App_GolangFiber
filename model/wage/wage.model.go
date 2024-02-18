@@ -20,8 +20,15 @@ type GetWageByIDInput struct {
 type GetWageByIDResult struct {
 	WageID   primitive.ObjectID `json:"wageID" bson:"wageID"`
 	Employee []struct {
-		EmployeeID primitive.ObjectID `json:"employeeID" bson:"employeeID"`
-		Wage       float64            `json:"wage" bson:"wage"`
+		EmployeeID      primitive.ObjectID `json:"employeeID" bson:"employeeID"`
+		Wage            float64            `json:"wage" bson:"wage"`
+		EmployeeDetails struct {
+			FirstName string  `json:"firstName" bson:"firstName"`
+			LastName  string  `json:"lastName" bson:"lastName"`
+			HiredType string  `json:"hiredType" bson:"hiredType"`
+			Salary    float64 `json:"salary" bson:"salary"`
+			CitizenID string  `json:"citizenID" bson:"citizenID"`
+		}
 	} `json:"employee" bson:"employee"`
 	Date time.Time `json:"date" bson:"date"`
 }
@@ -39,8 +46,9 @@ type AddWageInputMongo struct {
 		EmployeeID primitive.ObjectID `json:"employeeID" bson:"employeeID"`
 		Wage       float64            `json:"wage" bson:"wage"`
 	} `json:"employee" bson:"employee" validate:"required"`
-	Date   time.Time `json:"date" bson:"date" validate:"required"`
-	Status int       `json:"status" bson:"status" validate:"required"`
+	Date      time.Time `json:"date" bson:"date" validate:"required"`
+	Status    int       `json:"status" bson:"status"`
+	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
 }
 
 type AddWageResult struct {
@@ -56,7 +64,8 @@ type UpdateWageInput struct {
 		EmployeeID string  `json:"employeeID" bson:"employeeID"`
 		Wage       float64 `json:"wage" bson:"wage"`
 	} `json:"addEmployee" bson:"addEmployee"`
-	RemoveEmployee []string `json:"removeEmployee" bson:"removeEmployee"`
+	RemoveEmployee []string  `json:"removeEmployee" bson:"removeEmployee"`
+	UpdatedAt      time.Time `json:"updatedAt" bson:"updatedAt"`
 }
 
 type DeleteWageInput struct {

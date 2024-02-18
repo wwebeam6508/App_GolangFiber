@@ -56,6 +56,7 @@ type AddEmployeeInput struct {
 	Address    string           `json:"address" bson:"address"`
 	Salary     float64          `json:"salary" bson:"salary"`
 	Status     int              `json:"status" bson:"status"`
+	CreatedAt  time.Time        `json:"createdAt" bson:"createdAt"`
 }
 
 type UpdateEmployeeID struct {
@@ -72,6 +73,7 @@ type UpdateEmployeeInput struct {
 	CitizenID  string           `json:"citizenID" bson:"citizenID"`
 	Address    string           `json:"address" bson:"address"`
 	Salary     float64          `json:"salary" bson:"salary"`
+	UpdatedAt  time.Time        `json:"updatedAt" bson:"updatedAt"`
 }
 
 type DeleteEmployeeInput struct {

@@ -127,6 +127,7 @@ func AddUserService(input model.AddUserInput) (primitive.ObjectID, error) {
 		return primitive.ObjectID{}, err
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users")
+
 	ires, err := ref.InsertOne(context.Background(), bson.D{
 		{Key: "username", Value: input.Username},
 		{Key: "password", Value: password},
@@ -151,6 +152,7 @@ func UpdateUserService(input model.UpdateUserInput, id model.UpdateUserID) error
 		return err
 	}
 	//get only input that is not empty dynamic
+	input.UpdatedAt = time.Now()
 	updateData := bson.D{}
 	reflectInput := reflect.ValueOf(input)
 	for i := 0; i < reflectInput.NumField(); i++ {

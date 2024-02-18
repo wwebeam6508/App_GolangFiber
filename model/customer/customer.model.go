@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -39,11 +41,13 @@ type GetCustomerByIDResult struct {
 }
 
 type AddCustomerInput struct {
-	Name    string   `json:"name" bson:"name" validate:"required"`
-	Address string   `json:"address" bson:"address"`
-	TaxID   string   `json:"taxID" bson:"taxID"`
-	Emails  []string `json:"emails" bson:"emails"`
-	Phones  []string `json:"phones" bson:"phones"`
+	Name      string    `json:"name" bson:"name" validate:"required"`
+	Address   string    `json:"address" bson:"address"`
+	TaxID     string    `json:"taxID" bson:"taxID"`
+	Emails    []string  `json:"emails" bson:"emails"`
+	Phones    []string  `json:"phones" bson:"phones"`
+	Status    int       `json:"status" bson:"status"`
+	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
 }
 
 type UpdateCustomerID struct {
@@ -51,13 +55,14 @@ type UpdateCustomerID struct {
 }
 
 type UpdateCustomerInput struct {
-	Name         string   `json:"name" bson:"name"`
-	Address      string   `json:"address" bson:"address"`
-	TaxID        string   `json:"taxID" bson:"taxID"`
-	AddEmails    []string `json:"addEmails" bson:"addEmails"`
-	RemoveEmails []string `json:"removeEmails" bson:"removeEmails"`
-	AddPhones    []string `json:"addPhones" bson:"addPhones"`
-	RemovePhones []string `json:"removePhones" bson:"removePhones"`
+	Name         string    `json:"name" bson:"name"`
+	Address      string    `json:"address" bson:"address"`
+	TaxID        string    `json:"taxID" bson:"taxID"`
+	AddEmails    []string  `json:"addEmails" bson:"addEmails"`
+	RemoveEmails []string  `json:"removeEmails" bson:"removeEmails"`
+	AddPhones    []string  `json:"addPhones" bson:"addPhones"`
+	RemovePhones []string  `json:"removePhones" bson:"removePhones"`
+	UpdatedAt    time.Time `json:"updatedAt" bson:"updatedAt"`
 }
 
 type DeleteCustomerInput struct {

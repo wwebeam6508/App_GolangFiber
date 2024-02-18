@@ -24,7 +24,7 @@ var SexOptions = []Sex{Male, Female}
 var HiredTypeOptions = []HiredType{Contract, FullTime, Gone}
 
 type Employee struct {
-	EmployeeID string    `json:"employeeID" bson:"employeeID"`
+	EmployeeID string    `json:"_id" bson:"_id"`
 	FirstName  string    `json:"firstName" bson:"firstName"`
 	LastName   string    `json:"lastName" bson:"lastName"`
 	BornDate   time.Time `json:"bornDate" bson:"bornDate"`

@@ -3,10 +3,12 @@ package service
 import (
 	"PBD_backend_go/common"
 	"PBD_backend_go/configuration"
+	"PBD_backend_go/exception"
 	model "PBD_backend_go/model/project"
 	"context"
 	"os"
 	"reflect"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -138,6 +140,8 @@ func AddProjectService(input model.AddProjectInput) (primitive.ObjectID, error) 
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	//exclude images
+	input.Status = 1
+	input.CreatedAt = time.Now()
 	addInput := bson.D{}
 	for i := 0; i < reflect.ValueOf(input).NumField(); i++ {
 		if reflect.ValueOf(input).Type().Field(i).Name != "Images" {
@@ -164,7 +168,7 @@ func UpdateProjectService(input model.UpdateProjectInput, projectID string) erro
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	projectObjectID, _ := primitive.ObjectIDFromHex(projectID)
-
+	input.UpdatedAt = time.Now()
 	update := bson.D{}
 	//reflect input that is not empty
 	inputRef := reflect.ValueOf(input)
@@ -181,9 +185,13 @@ func UpdateProjectService(input model.UpdateProjectInput, projectID string) erro
 			update = append(update, bson.E{Key: inputRef.Type().Field(i).Tag.Get("json"), Value: inputRef.Field(i).Interface()})
 		}
 	}
-	_, err = ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: projectObjectID}}, bson.D{{Key: "$set", Value: update}})
+
+	res, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: projectObjectID}}, bson.D{{Key: "$set", Value: update}})
 	if err != nil {
 		return err
+	}
+	if res.MatchedCount == 0 {
+		return exception.NotFoundError{Message: "project not found"}
 	}
 	return nil
 }
@@ -196,9 +204,12 @@ func DeleteProjectService(projectID string) error {
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("works")
 	projectObjectID, _ := primitive.ObjectIDFromHex(projectID)
-	_, err = ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: projectObjectID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
+	res, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: projectObjectID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
 	if err != nil {
 		return err
+	}
+	if res.MatchedCount == 0 {
+		return exception.NotFoundError{Message: "project not found"}
 	}
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"context"
 	"os"
 	"reflect"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -105,6 +106,7 @@ func AddEmployeeService(input model.AddEmployeeInput) (primitive.ObjectID, error
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("employee")
 	input.Status = 1
+	input.CreatedAt = time.Now()
 	res, err := ref.InsertOne(context.Background(), input)
 	if err != nil {
 		return primitive.ObjectID{}, err
@@ -124,6 +126,7 @@ func UpdateEmployeeService(input model.UpdateEmployeeInput, employee model.Updat
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("employee")
 	employeeIDObjectID, _ := primitive.ObjectIDFromHex(employee.EmployeeID)
+	input.UpdatedAt = time.Now()
 	updateStage := bson.A{}
 	for i := 0; i < reflect.TypeOf(input).NumField(); i++ {
 		field := reflect.TypeOf(input).Field(i)
@@ -132,9 +135,12 @@ func UpdateEmployeeService(input model.UpdateEmployeeInput, employee model.Updat
 			updateStage = append(updateStage, bson.M{"$set": bson.M{field.Tag.Get("bson"): value}})
 		}
 	}
-	_, err = ref.UpdateOne(context.Background(), bson.M{"_id": employeeIDObjectID, "status": 1}, updateStage)
+	res, err := ref.UpdateOne(context.Background(), bson.M{"_id": employeeIDObjectID, "status": 1}, updateStage)
 	if err != nil {
 		return err
+	}
+	if res.MatchedCount == 0 {
+		return exception.NotFoundError{Message: "employee not found"}
 	}
 	return nil
 }
@@ -148,9 +154,12 @@ func DeleteEmployeeService(employee model.UpdateEmployeeID) error {
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("employee")
 	employeeIDObjectID, _ := primitive.ObjectIDFromHex(employee.EmployeeID)
 	updateStage := bson.A{bson.M{"$set": bson.M{"status": 0}}}
-	_, err = ref.UpdateOne(context.Background(), bson.M{"_id": employeeIDObjectID, "status": 1}, updateStage)
+	res, err := ref.UpdateOne(context.Background(), bson.M{"_id": employeeIDObjectID, "status": 1}, updateStage)
 	if err != nil {
 		return err
+	}
+	if res.MatchedCount == 0 {
+		return exception.NotFoundError{Message: "employee not found"}
 	}
 	return nil
 }
