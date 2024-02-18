@@ -142,6 +142,9 @@ func AddCustomerService(input model.AddCustomerInput) (primitive.ObjectID, error
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
+	if insertResult.InsertedID == nil {
+		return primitive.NilObjectID, exception.ValidationError{Message: "add customer failed"}
+	}
 	return insertResult.InsertedID.(primitive.ObjectID), nil
 }
 

@@ -119,9 +119,12 @@ func UpdateExpenseService(input model.UpdateExpenseInput, expenseID string) erro
 
 	filter := bson.D{{Key: "_id", Value: expenseIDObjectID}}
 	updateFirst := bson.D{{Key: "$set", Value: updateInput}}
-	_, err = ref.UpdateOne(context.Background(), filter, updateFirst)
+	res, err := ref.UpdateOne(context.Background(), filter, updateFirst)
 	if err != nil {
 		return err
+	}
+	if res.MatchedCount == 0 {
+		return exception.NotFoundError{Message: "Expense Not found"}
 	}
 
 	//addLists and removeLists
@@ -166,9 +169,12 @@ func DeleleExpenseService(input model.DeleteExpenseInput) error {
 	expenseIDObjectID, _ := primitive.ObjectIDFromHex(input.ExpenseID)
 	filter := bson.D{{Key: "_id", Value: expenseIDObjectID}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}}
-	_, err = ref.UpdateOne(context.Background(), filter, update)
+	res, err := ref.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return err
+	}
+	if res.MatchedCount == 0 {
+		return exception.NotFoundError{Message: "Expense Not found"}
 	}
 	return nil
 }

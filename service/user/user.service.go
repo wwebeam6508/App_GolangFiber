@@ -186,7 +186,13 @@ func UpdateUserService(input model.UpdateUserInput, id model.UpdateUserID) error
 	if err != nil {
 		return exception.ValidationError{Message: "invalid userID"}
 	}
-	coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: updateData}})
+	res, err := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: updateData}})
+	if err != nil {
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return exception.NotFoundError{Message: "user not found"}
+	}
 	return nil
 }
 
@@ -201,7 +207,13 @@ func DeleteUserService(input model.DeleteUserInput) error {
 	if err != nil {
 		return exception.ValidationError{Message: "invalid userID"}
 	}
-	coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
+	res, err := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("users").UpdateOne(context.Background(), bson.D{{Key: "_id", Value: userIDObjectID}, {Key: "status", Value: 1}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
+	if err != nil {
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return exception.NotFoundError{Message: "user not found"}
+	}
 	return nil
 }
 
