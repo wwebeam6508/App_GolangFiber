@@ -6,5 +6,5 @@ type Inventroy struct {
 	Description   string        `json:"description" bson:"description"`
 	Price         int           `json:"price" bson:"price"`
 	Quantity      int           `json:"quantity" bson:"quantity"`
-	InventoryType InventoryType `json:"inventory_type" bson:"inventory_type"`
+	InventoryType InventoryType `json:"inventoryType" bson:"inventoryType"`
 }

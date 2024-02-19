@@ -42,7 +42,8 @@ func GetInventoryTypeByID(input model.GetInventoryByIDInput) (*model.GetInventor
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("inventory_type")
 	var result []model.GetInventoryTypeByIDResult
 	//aggrate
-	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: input.ID}, {Key: "status", Value: 1}}}}
+	objectID, _ := primitive.ObjectIDFromHex(input.InventoryTypeID)
+	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: objectID}, {Key: "status", Value: 1}}}}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{{Key: "inventoryTypeID", Value: "$_id"}, {Key: "name", Value: 1}, {Key: "status", Value: 1}}}}
 	pipeline := bson.A{matchStage, projectStage}
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
@@ -91,7 +92,8 @@ func UpdateInventoryTypeService(input model.UpdateInventoryTypeInput, ID model.U
 		}
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("inventory_type")
-	res, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: ID.ID}}, updateField)
+	objectID, _ := primitive.ObjectIDFromHex(ID.InventoryTypeID)
+	res, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: objectID}}, updateField)
 	if err != nil {
 		return err
 	}
@@ -108,7 +110,8 @@ func DeleteInventoryTypeService(ID model.DeleteInventoryTypeID) error {
 		return err
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("inventory_type")
-	res, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: ID.ID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
+	objectID, _ := primitive.ObjectIDFromHex(ID.InventoryTypeID)
+	res, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: objectID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: 0}}}})
 	if err != nil {
 		return err
 	}
@@ -163,9 +166,8 @@ func getPipelineGetInventory(input commonentity.PaginateInput, searchPipeline co
 	}
 	sortState := bson.M{"$sort": bson.M{input.SortTitle: sortValue}}
 	projectState := bson.M{"$project": bson.M{
-		"inventoryTypeID": "$_id",
-		"name":            1,
-		"status":          1,
+		"_id":  "$_id",
+		"name": 1,
 	}}
 
 	pipeline := bson.A{matchState, skipState, limitState, sortState, projectState}

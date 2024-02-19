@@ -104,7 +104,7 @@ func DeleteLocationService(deleteID model.DeleteLocationID) error {
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("location")
 	objectID, _ := primitive.ObjectIDFromHex(deleteID.LocationID)
-	result, err := ref.UpdateOne(context.Background(), bson.M{"_id": objectID, "status": 1}, bson.M{"$set": bson.M{"status": 0, "lastDeletedAt": time.Now()}})
+	result, err := ref.UpdateOne(context.Background(), bson.M{"_id": objectID, "status": 1}, bson.M{"$set": bson.M{"status": 0}})
 	if err != nil {
 		return err
 	}

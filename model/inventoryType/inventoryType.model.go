@@ -6,7 +6,7 @@ type GetInventoryTypeResult struct {
 }
 
 type GetInventoryByIDInput struct {
-	ID string `json:"_id" bson:"_id"`
+	InventoryTypeID string `json:"inventoryTypeID" bson:"inventoryTypeID" validate:"required"`
 }
 
 type GetInventoryTypeByIDResult struct {
@@ -19,7 +19,7 @@ type AddInventoryTypeInput struct {
 }
 
 type UpdateInventoryTypeID struct {
-	ID string `json:"_id" bson:"_id"`
+	InventoryTypeID string `json:"inventoryTypeID" bson:"inventoryTypeID" validate:"required"`
 }
 
 type UpdateInventoryTypeInput struct {
@@ -27,5 +27,5 @@ type UpdateInventoryTypeInput struct {
 }
 
 type DeleteInventoryTypeID struct {
-	ID string `json:"_id" bson:"_id"`
+	InventoryTypeID string `json:"inventoryTypeID" bson:"inventoryTypeID" validate:"required"`
 }
