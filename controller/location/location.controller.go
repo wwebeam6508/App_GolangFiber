@@ -64,7 +64,7 @@ func GetLocationController(c *fiber.Ctx) error {
 }
 
 func GetLocationByIDController(c *fiber.Ctx) error {
-	var input model.GetLocationByIDInput
+	input := model.GetLocationByIDInput{}
 	if err := c.QueryParser(&input); err != nil {
 		return exception.ErrorHandler(c, err)
 	}
@@ -84,20 +84,19 @@ func GetLocationByIDController(c *fiber.Ctx) error {
 }
 
 func UpdateLocationController(c *fiber.Ctx) error {
-	var id model.UpdateLocationID
-	if err := c.QueryParser(&id); err != nil {
+	query := model.UpdateLocationID{}
+	if err := c.QueryParser(&query); err != nil {
 		return exception.ErrorHandler(c, err)
 	}
-	validate := common.Validate(id)
+	validate := common.Validate(query)
 	if validate != nil {
 		return exception.ErrorHandler(c, validate)
 	}
-
 	var input model.UpdateLocationInput
 	if err := c.BodyParser(&input); err != nil {
 		return exception.ErrorHandler(c, err)
 	}
-	err := service.UpdateLocationService(input, id)
+	err := service.UpdateLocationService(input, query)
 	if err != nil {
 		return exception.ErrorHandler(c, err)
 	}

@@ -41,8 +41,9 @@ func GetLocationByIDService(input model.GetLocationByIDInput) (model.GetLocation
 		return model.GetLocationByIDResult{}, err
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("location")
+	objectId, _ := primitive.ObjectIDFromHex(input.LocationID)
 	var result model.GetLocationByIDResult
-	err = ref.FindOne(context.Background(), bson.M{"_id": input.ID, "status": 1}).Decode(&result)
+	err = ref.FindOne(context.Background(), bson.M{"_id": objectId, "status": 1}).Decode(&result)
 	if err != nil {
 		return model.GetLocationByIDResult{}, err
 	}
@@ -57,10 +58,10 @@ func AddLocationService(input model.AddLocationInput) (primitive.ObjectID, error
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("location")
 	result, err := ref.InsertOne(context.Background(), bson.M{
-		"name":    input.Name,
-		"address": input.Address,
-		"status":  1,
-		"created": time.Now(),
+		"name":      input.Name,
+		"address":   input.Address,
+		"status":    1,
+		"createdAt": time.Now(),
 	})
 	if err != nil {
 		return primitive.ObjectID{}, err
@@ -83,7 +84,9 @@ func UpdateLocationService(input model.UpdateLocationInput, updateID model.Updat
 	}
 	updateField["updatedAt"] = time.Now()
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("location")
-	result, err := ref.UpdateOne(context.Background(), bson.M{"_id": updateID.ID, "status": 1}, bson.M{"$set": updateField})
+	objectId, _ := primitive.ObjectIDFromHex(updateID.LocationID)
+
+	result, err := ref.UpdateOne(context.Background(), bson.M{"_id": objectId, "status": 1}, bson.M{"$set": updateField})
 	if err != nil {
 		return err
 	}
@@ -100,7 +103,8 @@ func DeleteLocationService(deleteID model.DeleteLocationID) error {
 		return err
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("location")
-	result, err := ref.UpdateOne(context.Background(), bson.M{"_id": deleteID.ID, "status": 1}, bson.M{"$set": bson.M{"status": 0}})
+	objectID, _ := primitive.ObjectIDFromHex(deleteID.LocationID)
+	result, err := ref.UpdateOne(context.Background(), bson.M{"_id": objectID, "status": 1}, bson.M{"$set": bson.M{"status": 0, "lastDeletedAt": time.Now()}})
 	if err != nil {
 		return err
 	}

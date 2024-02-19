@@ -27,7 +27,7 @@ func InventoryTypeRoute(routes fiber.Router) {
 			Name:      "CanEdit",
 		})
 	}, controller.AddInventoryTypeController)
-	routes.Put("/update", middleware.Authenication, func(c *fiber.Ctx) error {
+	routes.Patch("/update", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "InventoryType",
 			Name:      "CanEdit",
@@ -39,5 +39,5 @@ func InventoryTypeRoute(routes fiber.Router) {
 			Name:      "CanRemove",
 		})
 	}, controller.DeleteInventoryTypeController)
-	
+
 }

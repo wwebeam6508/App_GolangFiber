@@ -7,7 +7,7 @@ type GetLocationResult struct {
 }
 
 type GetLocationByIDInput struct {
-	ID string `json:"_id" bson:"_id"`
+	LocationID string `json:"locationID" bson:"locationID" validate:"required"`
 }
 
 type GetLocationByIDResult struct {
@@ -17,12 +17,12 @@ type GetLocationByIDResult struct {
 }
 
 type AddLocationInput struct {
-	Name    string `json:"name" bson:"name"`
-	Address string `json:"address" bson:"address"`
+	Name    string `json:"name" bson:"name" validate:"required"`
+	Address string `json:"address" bson:"address" validate:"required"`
 }
 
 type UpdateLocationID struct {
-	ID string `json:"_id" bson:"_id"`
+	LocationID string `json:"locationID" bson:"locationID" validate:"required"`
 }
 
 type UpdateLocationInput struct {
@@ -31,5 +31,5 @@ type UpdateLocationInput struct {
 }
 
 type DeleteLocationID struct {
-	ID string `json:"_id" bson:"_id"`
+	LocationID string `json:"locationID" bson:"locationID" validate:"required"`
 }
