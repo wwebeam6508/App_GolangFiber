@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetLocationService(input commonentity.PaginateInput, searchPipeline commonentity.SearchPipeline) ([]model.GetLocationResult, error) {
@@ -48,11 +49,11 @@ func GetLocationByIDService(input model.GetLocationByIDInput) (model.GetLocation
 	return result, nil
 }
 
-func AddLocationService(input model.AddLocationInput) (string, error) {
+func AddLocationService(input model.AddLocationInput) (primitive.ObjectID, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	defer coll.Disconnect(context.Background())
 	if err != nil {
-		return "", err
+		return primitive.ObjectID{}, err
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("location")
 	result, err := ref.InsertOne(context.Background(), bson.M{
@@ -62,9 +63,9 @@ func AddLocationService(input model.AddLocationInput) (string, error) {
 		"created": time.Now(),
 	})
 	if err != nil {
-		return "", err
+		return primitive.ObjectID{}, err
 	}
-	return result.InsertedID.(string), nil
+	return result.InsertedID.(primitive.ObjectID), nil
 }
 
 func UpdateLocationService(input model.UpdateLocationInput, updateID model.UpdateLocationID) error {
