@@ -20,6 +20,7 @@ type Permissions struct {
 	Employee      PermissionDetail `json:"employee" bson:"employee"`
 	Location      PermissionDetail `json:"location" bson:"location"`
 	InventoryType PermissionDetail `json:"inventoryType" bson:"inventoryType"`
+	Inventory     PermissionDetail `json:"inventory" bson:"inventory"`
 	Wage          PermissionDetail `json:"wage" bson:"wage"`
 }
 

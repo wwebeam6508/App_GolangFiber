@@ -8,6 +8,8 @@ import (
 	model "PBD_backend_go/model/inventory"
 	"context"
 	"os"
+	"reflect"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -48,7 +50,7 @@ func GetInventoryByID(input model.GetInventoryByIDInput) (*model.GetInventoryByI
 		"foreignField": "_id",
 		"as":           "inventoryTypeDetail",
 	}}
-	unwindState := bson.M{"$unwind": "$inventoryType"}
+	unwindState := bson.M{"$unwind": "$inventoryTypeDetail"}
 	projectStage := bson.D{{Key: "$project", Value: bson.D{{Key: "inventoryTypeID", Value: "$_id"}, {Key: "name", Value: 1}, {Key: "description", Value: 1}, {Key: "price", Value: 1}, {Key: "quantity", Value: 1}, {Key: "inventoryType", Value: "$inventoryTypeDetail._id"}}}}
 	pipeline := bson.A{matchStage, lookUpState, unwindState, projectStage}
 	cursor, err := ref.Aggregate(context.Background(), pipeline)
@@ -71,7 +73,16 @@ func AddInventoryService(input model.AddInventoryInput) (primitive.ObjectID, err
 		return primitive.NilObjectID, err
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("inventory")
-	res, err := ref.InsertOne(context.Background(), input)
+	inventoryTypeObjectID, _ := primitive.ObjectIDFromHex(input.InventoryType)
+	res, err := ref.InsertOne(context.Background(), bson.M{
+		"name":          input.Name,
+		"description":   input.Description,
+		"price":         input.Price,
+		"quantity":      input.Quantity,
+		"inventoryType": inventoryTypeObjectID,
+		"status":        1,
+		"createdAt":     time.Now(),
+	})
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
@@ -89,8 +100,21 @@ func UpdateInventoryService(input model.UpdateInventoryInput, id model.UpdateInv
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("inventory")
 	objectID, _ := primitive.ObjectIDFromHex(id.InventoryID)
-	updateState := bson.D{{Key: "$set", Value: bson.D{{Key: "name", Value: input.Name}, {Key: "description", Value: input.Description}, {Key: "price", Value: input.Price}, {Key: "quantity", Value: input.Quantity}, {Key: "inventoryType", Value: input.InventoryType}}}}
-	res, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: objectID}}, updateState)
+	updateField := bson.A{}
+	for i := 0; i < reflect.ValueOf(input).NumField(); i++ {
+		value := reflect.ValueOf(input).Field(i).Interface()
+		field := reflect.TypeOf(input).Field(i)
+		if !common.IsEmpty(value) {
+			if reflect.TypeOf(input).Field(i).Tag.Get("json") == "inventoryType" {
+				inventoryTypeObjectID, _ := primitive.ObjectIDFromHex(input.InventoryType)
+				updateField = append(updateField, bson.M{"inventoryType": inventoryTypeObjectID})
+				continue
+			}
+			updateField = append(updateField, bson.M{"$set": bson.M{field.Tag.Get("bson"): value}})
+		}
+	}
+	updateField = append(updateField, bson.M{"$set": bson.M{"updatedAt": time.Now()}})
+	res, err := ref.UpdateOne(context.Background(), bson.D{{Key: "_id", Value: objectID}}, updateField)
 	if err != nil {
 		return err
 	}
@@ -153,9 +177,9 @@ func getPipelineGetInventory(input commonentity.PaginateInput, searchPipeline co
 		"from":         "inventory_type",
 		"localField":   "inventoryType",
 		"foreignField": "_id",
-		"as":           "inventoryType",
+		"as":           "inventoryTypeDetail",
 	}}
-	unwindState := bson.M{"$unwind": "$inventoryType"}
+	unwindState := bson.M{"$unwind": "$inventoryTypeDetail"}
 	skipState := bson.M{"$skip": input.Page * input.PageSize}
 	limitState := bson.M{"$limit": input.PageSize}
 	var sortValue int
@@ -173,7 +197,7 @@ func getPipelineGetInventory(input commonentity.PaginateInput, searchPipeline co
 		"description":   1,
 		"price":         1,
 		"quantity":      1,
-		"inventoryType": "$inventoryType.name",
+		"inventoryType": "$inventoryTypeDetail.name",
 	}}
 
 	pipeline := bson.A{matchState, lookUpState, unwindState, skipState, limitState, sortState, projectState}

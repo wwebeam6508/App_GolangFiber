@@ -1,16 +1,14 @@
 package model
 
 import (
-	"PBD_backend_go/entity"
-
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type GetInventoryResult struct {
-	ID            primitive.ObjectID   `json:"_id" bson:"_id"`
-	Name          string               `json:"name" bson:"name"`
-	Quantity      int32                `json:"quantity" bson:"quantity"`
-	InventoryType entity.InventoryType `json:"inventoryType" bson:"inventoryType"`
+	ID            primitive.ObjectID `json:"_id" bson:"_id"`
+	Name          string             `json:"name" bson:"name"`
+	Quantity      int32              `json:"quantity" bson:"quantity"`
+	InventoryType string             `json:"inventoryType" bson:"inventoryType"`
 }
 
 type GetInventoryByIDInput struct {
@@ -18,12 +16,12 @@ type GetInventoryByIDInput struct {
 }
 
 type GetInventoryByIDResult struct {
-	ID            primitive.ObjectID   `json:"_id" bson:"_id"`
-	Name          string               `json:"name" bson:"name"`
-	Description   string               `json:"description" bson:"description"`
-	Price         float64              `json:"price" bson:"price"`
-	Quantity      int32                `json:"quantity" bson:"quantity"`
-	InventoryType entity.InventoryType `json:"inventoryType" bson:"inventoryType"`
+	ID            primitive.ObjectID `json:"_id" bson:"_id"`
+	Name          string             `json:"name" bson:"name"`
+	Description   string             `json:"description" bson:"description"`
+	Price         float64            `json:"price" bson:"price"`
+	Quantity      int32              `json:"quantity" bson:"quantity"`
+	InventoryType primitive.ObjectID `json:"inventoryType" bson:"inventoryType"`
 }
 
 type AddInventoryInput struct {
