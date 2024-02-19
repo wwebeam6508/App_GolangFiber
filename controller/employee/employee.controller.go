@@ -17,7 +17,7 @@ import (
 )
 
 func GetEmployeeController(c *fiber.Ctx) error {
-	var query model.GetEmployeeInput
+	var query commonentity.PaginateInput
 	if err := c.QueryParser(&query); err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func getSearchPipeline(search, searchFilter string) (bson.A, error) {
 	return pipeline, nil
 }
 
-func getEmployeeBodyCondition(body model.GetEmployeeInput) model.GetEmployeeInput {
+func getEmployeeBodyCondition(body commonentity.PaginateInput) commonentity.PaginateInput {
 	if body.Page == 0 {
 		body.Page = 1
 	}

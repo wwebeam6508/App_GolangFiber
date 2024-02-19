@@ -12,14 +12,15 @@ type PermissionDetail struct {
 }
 
 type Permissions struct {
-	User     PermissionDetail `json:"user" bson:"user"`
-	UserType PermissionDetail `json:"userType" bson:"userType"`
-	Project  PermissionDetail `json:"project" bson:"project"`
-	Expense  PermissionDetail `json:"expense" bson:"expense"`
-	Customer PermissionDetail `json:"customer" bson:"customer"`
-	Employee PermissionDetail `json:"employee" bson:"employee"`
-	Location PermissionDetail `json:"location" bson:"location"`
-	Wage     PermissionDetail `json:"wage" bson:"wage"`
+	User          PermissionDetail `json:"user" bson:"user"`
+	UserType      PermissionDetail `json:"userType" bson:"userType"`
+	Project       PermissionDetail `json:"project" bson:"project"`
+	Expense       PermissionDetail `json:"expense" bson:"expense"`
+	Customer      PermissionDetail `json:"customer" bson:"customer"`
+	Employee      PermissionDetail `json:"employee" bson:"employee"`
+	Location      PermissionDetail `json:"location" bson:"location"`
+	InventoryType PermissionDetail `json:"inventoryType" bson:"inventoryType"`
+	Wage          PermissionDetail `json:"wage" bson:"wage"`
 }
 
 type UserType struct {

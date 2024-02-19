@@ -15,7 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func GetEmployeeService(input model.GetEmployeeInput, searchPipeline commonentity.SearchPipeline) ([]model.GetEmployeeResult, error) {
+func GetEmployeeService(input commonentity.PaginateInput, searchPipeline commonentity.SearchPipeline) ([]model.GetEmployeeResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	defer coll.Disconnect(context.Background())
 	if err != nil {
@@ -164,7 +164,7 @@ func DeleteEmployeeService(employee model.UpdateEmployeeID) error {
 	return nil
 }
 
-func getPipelineGetEmployee(input model.GetEmployeeInput, searchPipeline commonentity.SearchPipeline) bson.A {
+func getPipelineGetEmployee(input commonentity.PaginateInput, searchPipeline commonentity.SearchPipeline) bson.A {
 	matchState := bson.M{"$match": bson.M{"status": 1}}
 	if input.Page > 0 {
 		input.Page = input.Page - 1
