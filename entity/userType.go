@@ -18,6 +18,7 @@ type Permissions struct {
 	Expense  PermissionDetail `json:"expense" bson:"expense"`
 	Customer PermissionDetail `json:"customer" bson:"customer"`
 	Employee PermissionDetail `json:"employee" bson:"employee"`
+	Location PermissionDetail `json:"location" bson:"location"`
 	Wage     PermissionDetail `json:"wage" bson:"wage"`
 }
 

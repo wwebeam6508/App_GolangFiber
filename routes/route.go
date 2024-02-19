@@ -52,6 +52,7 @@ func SetupRoutes(app *fiber.App) {
 	Group.Route("/projectmanagement", ProjectRoute)
 	Group.Route("/expensemanagement", ExpenseRoute)
 	Group.Route("/employeemanagement", EmployeeRoute)
+	Group.Route("/locationmanagement", LocationRoute)
 	Group.Route("/wagemanagement", WageRoute)
 	Group.Route("/dashboard", DashboardRoute)
 }

@@ -33,6 +33,7 @@ type GetEmployeeByIDResult struct {
 	Sex              string             `json:"sex" bson:"sex"`
 	HiredTypeOptions []entity.HiredType `json:"hiredTypeOptions" bson:"hiredTypeOptions"`
 	SexOptions       []entity.Sex       `json:"sexOptions" bson:"sexOptions"`
+	Location         string             `json:"location" bson:"location"`
 }
 
 type GetEmployeeResult struct {
@@ -43,6 +44,7 @@ type GetEmployeeResult struct {
 	HiredType  entity.HiredType   `json:"hiredType" bson:"hiredType"`
 	Salary     float64            `json:"salary" bson:"salary"`
 	Sex        string             `json:"sex" bson:"sex"`
+	Location   string             `json:"location" bson:"location"`
 }
 
 type AddEmployeeInput struct {
