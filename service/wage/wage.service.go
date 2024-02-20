@@ -34,47 +34,28 @@ func GetWageService(input commonentity.PaginateInput, searchPipeline commonentit
 	return result, nil
 }
 
-func GetWageByIDService(input model.GetWageByIDInput) (model.GetWageByIDResult, error) {
+func GetWageByIDService(input model.GetWageByIDInput) (*model.GetWageByIDResult, error) {
 	coll, err := configuration.ConnectToMongoDB()
 	defer coll.Disconnect(context.Background())
 	if err != nil {
-		return model.GetWageByIDResult{}, err
+		return nil, err
 	}
 	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("wage")
-	var result []model.GetWageByIDResult
+	var result model.GetWageByIDResult
 	WageIDObject, err := primitive.ObjectIDFromHex(input.WageID)
 	if err != nil {
-		return model.GetWageByIDResult{}, err
+		return nil, err
 	}
-	matchStage := bson.M{"$match": bson.M{"_id": WageIDObject, "status": 1}}
-	lookupStage := bson.M{"$lookup": bson.M{"from": "employee", "localField": "employee.employeeID", "foreignField": "_id", "as": "employeeDetails"}}
-	projectStatge := bson.M{"$project": bson.M{
-		"wageID": "$_id",
-		"date":   1,
-		"employee": bson.M{
-			"$map": bson.M{
-				"input": "$employee",
-				"as":    "emp",
-				"in": bson.M{
-					"employeeID": "$$emp.employeeID",
-					"wage":       "$$emp.wage",
-					"employeeDetails": bson.M{
-						"$arrayElemAt": bson.A{
-							"$employeeDetails", bson.M{
-								"$indexOfArray": bson.A{
-									"$employeeDetails._id", "$$emp.employeeID"}}}},
-				}}},
-	}}
-	pipeline := bson.A{matchStage, lookupStage, projectStatge}
-	cursor, err := ref.Aggregate(context.Background(), pipeline)
+	//findone
+	err = ref.FindOne(context.Background(), bson.M{"_id": WageIDObject, "status": 1}).Decode(&result)
 	if err != nil {
-		return model.GetWageByIDResult{}, err
+		return nil, err
 	}
-	if err = cursor.All(context.Background(), &result); err != nil {
-		return model.GetWageByIDResult{}, err
+	result.EmployeeName, err = getEmployeeNameService()
+	if err != nil {
+		return nil, err
 	}
-
-	return result[0], nil
+	return &result, nil
 }
 
 func AddWageService(input model.AddWageInput) (model.AddWageResult, error) {
@@ -221,6 +202,24 @@ func GetWageCountService(searchPipeline commonentity.SearchPipeline) (int32, err
 	}
 	count := result[0]["count"].(int32)
 	return count, nil
+}
+
+func getEmployeeNameService() ([]model.GetEmployeeNameResult, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("employee")
+	cursor, err := ref.Find(context.Background(), bson.M{"status": 1})
+	if err != nil {
+		return nil, err
+	}
+	var result []model.GetEmployeeNameResult
+	if err = cursor.All(context.Background(), &result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func getPipelineGetWage(input commonentity.PaginateInput, searchPipeline commonentity.SearchPipeline) bson.A {

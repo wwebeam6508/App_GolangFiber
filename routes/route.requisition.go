@@ -1,43 +1,42 @@
 package routes
 
 import (
-	controller "PBD_backend_go/controller/wage"
+	controller "PBD_backend_go/controller/requisition"
 	"PBD_backend_go/middleware"
 	"PBD_backend_go/model"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func WageRoute(route fiber.Router) {
+func RequisitionRoute(route fiber.Router) {
 	route.Get("/get", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
-			GroupName: "Wage",
+			GroupName: "Requisition",
 			Name:      "CanView",
 		})
-	}, controller.GetWageController)
+	}, controller.GetRequisitionController)
 	route.Get("/getByID", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
-			GroupName: "Wage",
+			GroupName: "Requisition",
 			Name:      "CanView",
 		})
-	}, controller.GetWageByIDController)
+	}, controller.GetRequisitionByIDController)
 	route.Post("/add", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
-			GroupName: "Wage",
+			GroupName: "Requisition",
 			Name:      "CanEdit",
 		})
-	}, controller.AddWageController)
-	route.Put("/update", middleware.Authenication, func(c *fiber.Ctx) error {
+	}, controller.AddRequisitionController)
+	route.Put("/updateStatus", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
-			GroupName: "Wage",
+			GroupName: "Requisition",
 			Name:      "CanEdit",
 		})
-	}, controller.UpdateWageController)
+	}, controller.UpdateRequisitionStatusService)
 	route.Delete("/delete", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
-			GroupName: "Wage",
+			GroupName: "Requisition",
 			Name:      "CanRemove",
 		})
-	}, controller.DeleteWageController)
-
+	}, controller.DeleteRequisitionController)
 }

@@ -18,7 +18,7 @@ func UserRoute(route fiber.Router) {
 	route.Get("/getUserByID", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "User",
-			Name:      "CanEdit",
+			Name:      "CanView",
 		})
 	}, authcontroller.GetUserByIDController)
 	route.Post("/addUser", middleware.Authenication, func(c *fiber.Ctx) error {
@@ -42,7 +42,7 @@ func UserRoute(route fiber.Router) {
 	route.Get("/getUserTypeName", middleware.Authenication, func(c *fiber.Ctx) error {
 		return middleware.Permission(c, model.PermissionInput{
 			GroupName: "UserType",
-			Name:      "CanEdit",
+			Name:      "CanView",
 		})
 	}, authcontroller.GetUserTypeNameController)
 }

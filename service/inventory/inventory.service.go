@@ -63,6 +63,10 @@ func GetInventoryByID(input model.GetInventoryByIDInput) (*model.GetInventoryByI
 	if len(result) == 0 {
 		return nil, nil
 	}
+	result[0].InventoryTypeName, err = getInventoryTypeNameService()
+	if err != nil {
+		return nil, err
+	}
 	return &result[0], nil
 }
 
@@ -165,7 +169,24 @@ func GetInventoryCountService(searchPipeline commonentity.SearchPipeline) (int32
 		return 0, nil
 	}
 	return int32(result[0]["count"].(int32)), nil
+}
 
+func getInventoryTypeNameService() ([]model.GetInventoryTypeName, error) {
+	coll, err := configuration.ConnectToMongoDB()
+	defer coll.Disconnect(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	ref := coll.Database(os.Getenv("MONGO_DB_NAME")).Collection("inventory_type")
+	cursor, err := ref.Find(context.Background(), bson.M{"status": 1})
+	if err != nil {
+		return nil, err
+	}
+	var result []model.GetInventoryTypeName
+	if err = cursor.All(context.Background(), &result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func getPipelineGetInventory(input commonentity.PaginateInput, searchPipeline commonentity.SearchPipeline) bson.A {

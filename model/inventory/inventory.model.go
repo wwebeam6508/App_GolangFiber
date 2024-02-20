@@ -16,12 +16,13 @@ type GetInventoryByIDInput struct {
 }
 
 type GetInventoryByIDResult struct {
-	ID            primitive.ObjectID `json:"_id" bson:"_id"`
-	Name          string             `json:"name" bson:"name"`
-	Description   string             `json:"description" bson:"description"`
-	Price         float64            `json:"price" bson:"price"`
-	Quantity      int32              `json:"quantity" bson:"quantity"`
-	InventoryType primitive.ObjectID `json:"inventoryType" bson:"inventoryType"`
+	ID                primitive.ObjectID     `json:"_id" bson:"_id"`
+	Name              string                 `json:"name" bson:"name"`
+	Description       string                 `json:"description" bson:"description"`
+	Price             float64                `json:"price" bson:"price"`
+	Quantity          int32                  `json:"quantity" bson:"quantity"`
+	InventoryType     primitive.ObjectID     `json:"inventoryType" bson:"inventoryType"`
+	InventoryTypeName []GetInventoryTypeName `json:"inventoryTypeName" bson:"inventoryTypeName"`
 }
 
 type AddInventoryInput struct {
@@ -46,4 +47,9 @@ type UpdateInventoryInput struct {
 
 type DeleteInventoryID struct {
 	InventoryID string `json:"inventoryID" bson:"inventoryID" validate:"required"`
+}
+
+type GetInventoryTypeName struct {
+	InventoryTypeID primitive.ObjectID `json:"inventoryTypeID" bson:"_id"`
+	Name            string             `json:"name" bson:"name"`
 }

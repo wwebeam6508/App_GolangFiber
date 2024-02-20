@@ -18,19 +18,13 @@ type GetWageByIDInput struct {
 }
 
 type GetWageByIDResult struct {
-	WageID   primitive.ObjectID `json:"wageID" bson:"wageID"`
+	WageID   primitive.ObjectID `json:"wageID" bson:"_id"`
 	Employee []struct {
-		EmployeeID      primitive.ObjectID `json:"employeeID" bson:"employeeID"`
-		Wage            float64            `json:"wage" bson:"wage"`
-		EmployeeDetails struct {
-			FirstName string  `json:"firstName" bson:"firstName"`
-			LastName  string  `json:"lastName" bson:"lastName"`
-			HiredType string  `json:"hiredType" bson:"hiredType"`
-			Salary    float64 `json:"salary" bson:"salary"`
-			CitizenID string  `json:"citizenID" bson:"citizenID"`
-		}
+		EmployeeID primitive.ObjectID `json:"employeeID" bson:"employeeID"`
+		Wage       float64            `json:"wage" bson:"wage"`
 	} `json:"employee" bson:"employee"`
-	Date time.Time `json:"date" bson:"date"`
+	Date         time.Time               `json:"date" bson:"date"`
+	EmployeeName []GetEmployeeNameResult `json:"employeeName" bson:"employeeName"`
 }
 
 type AddWageInput struct {
@@ -70,4 +64,11 @@ type UpdateWageInput struct {
 
 type DeleteWageInput struct {
 	WageID string `json:"wageID" bson:"wageID" validate:"required"`
+}
+
+type GetEmployeeNameResult struct {
+	EmployeeID string  `json:"employeeID" bson:"_id"`
+	FirstName  string  `json:"firstName" bson:"firstName"`
+	LastName   string  `json:"lastName" bson:"lastName"`
+	Salary     float64 `json:"salary" bson:"salary"`
 }
