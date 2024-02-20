@@ -22,6 +22,7 @@ type GetUserTypeResult struct {
 	Name       string             `json:"name" bson:"name"`
 	Date       time.Time          `json:"date" bson:"date"`
 	Rank       int32              `json:"rank" bson:"rank"`
+	Permission entity.Permissions `json:"permission" bson:"permission"`
 }
 
 type GetUserTypeByIDInput struct {

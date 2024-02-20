@@ -136,14 +136,7 @@ func DeleteInventoryTypeController(c *fiber.Ctx) error {
 func getSearchGroup(search string, searchFilter string) commonentity.SearchPipeline {
 	searchPipeline := bson.A{}
 	if !common.IsEmpty(search) && !common.IsEmpty(searchFilter) {
-		searchPipeline = bson.A{
-			bson.M{
-				searchFilter: bson.M{
-					"$regex":   search,
-					"$options": "i",
-				},
-			},
-		}
+		searchPipeline = append(searchPipeline, bson.D{{Key: "$match", Value: bson.D{{Key: searchFilter, Value: bson.D{{Key: "$regex", Value: search}}}}}})
 	}
 	return commonentity.SearchPipeline{
 		Search:         search,
