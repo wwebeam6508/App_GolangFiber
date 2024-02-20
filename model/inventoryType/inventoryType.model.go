@@ -1,7 +1,7 @@
 package model
 
 type GetInventoryTypeResult struct {
-	ID   string `json:"_id" bson:"_id"`
+	ID   string `json:"inventoryTypeID" bson:"_id"`
 	Name string `json:"name" bson:"name"`
 }
 
@@ -10,7 +10,7 @@ type GetInventoryByIDInput struct {
 }
 
 type GetInventoryTypeByIDResult struct {
-	ID   string `json:"_id" bson:"_id"`
+	ID   string `json:"inventoryTypeID" bson:"_id"`
 	Name string `json:"name" bson:"name"`
 }
 
