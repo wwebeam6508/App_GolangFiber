@@ -111,7 +111,7 @@ func UpdateInventoryService(input model.UpdateInventoryInput, id model.UpdateInv
 		if !common.IsEmpty(value) {
 			if reflect.TypeOf(input).Field(i).Tag.Get("json") == "inventoryType" {
 				inventoryTypeObjectID, _ := primitive.ObjectIDFromHex(input.InventoryType)
-				updateField = append(updateField, bson.M{"inventoryType": inventoryTypeObjectID})
+				updateField = append(updateField, bson.M{"$set": bson.M{"inventoryType": inventoryTypeObjectID}})
 				continue
 			}
 			updateField = append(updateField, bson.M{"$set": bson.M{field.Tag.Get("bson"): value}})

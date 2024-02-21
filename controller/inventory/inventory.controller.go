@@ -150,7 +150,7 @@ func getSearchGroup(search string, searchFilter string) commonentity.SearchPipel
 			if !common.IsEmpty(lte) {
 				pricePipeline = append(pricePipeline, bson.M{"price": bson.M{"$lte": lte}})
 			}
-			searchPipeline = append(searchPipeline, bson.M{"$and": pricePipeline})
+			searchPipeline = append(searchPipeline, bson.M{"$match": bson.M{"$and": pricePipeline}})
 		} else if searchFilter == "quantity" {
 			//split search by comma
 			searchArr := strings.Split(search, ",")
@@ -163,25 +163,20 @@ func getSearchGroup(search string, searchFilter string) commonentity.SearchPipel
 			if !common.IsEmpty(lte) {
 				quantityPipeline = append(quantityPipeline, bson.M{"quantity": bson.M{"$lte": lte}})
 			}
-			searchPipeline = append(searchPipeline, bson.M{"$and": quantityPipeline})
+			searchPipeline = append(searchPipeline, bson.M{"$match": bson.M{"$and": quantityPipeline}})
 		} else if searchFilter == "inventoryType" {
-			searchPipeline = bson.A{
-				bson.M{
-					"inventoryTypeDetail.name": bson.M{
-						"$regex":   search,
-						"$options": "i",
-					},
+			searchPipeline = append(searchPipeline, bson.M{"$match": bson.M{
+				"inventoryTypeDetail.name": bson.M{
+					"$regex":   search,
+					"$options": "i",
 				},
-			}
+			}})
 		} else {
-			searchPipeline = bson.A{
-				bson.M{
-					searchFilter: bson.M{
-						"$regex":   search,
-						"$options": "i",
-					},
-				},
-			}
+			searchPipeline = append(searchPipeline, bson.M{"$match": bson.M{
+				searchFilter: bson.M{
+					"$regex":   search,
+					"$options": "i",
+				}}})
 		}
 	}
 	return commonentity.SearchPipeline{

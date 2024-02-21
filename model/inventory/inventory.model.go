@@ -5,7 +5,7 @@ import (
 )
 
 type GetInventoryResult struct {
-	ID            primitive.ObjectID `json:"_id" bson:"_id"`
+	ID            primitive.ObjectID `json:"inventoryID" bson:"_id"`
 	Name          string             `json:"name" bson:"name"`
 	Quantity      int32              `json:"quantity" bson:"quantity"`
 	InventoryType string             `json:"inventoryType" bson:"inventoryType"`
@@ -16,7 +16,7 @@ type GetInventoryByIDInput struct {
 }
 
 type GetInventoryByIDResult struct {
-	ID                primitive.ObjectID     `json:"_id" bson:"_id"`
+	ID                primitive.ObjectID     `json:"inventoryID" bson:"_id"`
 	Name              string                 `json:"name" bson:"name"`
 	Description       string                 `json:"description" bson:"description"`
 	Price             float64                `json:"price" bson:"price"`
@@ -28,20 +28,20 @@ type GetInventoryByIDResult struct {
 type AddInventoryInput struct {
 	Name          string  `json:"name" bson:"name" validate:"required"`
 	Description   string  `json:"description" bson:"description" validate:"required"`
-	Price         float64 `json:"price" bson:"price" validate:"required"`
-	Quantity      int32   `json:"quantity" bson:"quantity" validate:"required"`
+	Price         float64 `json:"price,string" bson:"price" validate:"required"`
+	Quantity      int32   `json:"quantity,string" bson:"quantity" validate:"required gte=0"`
 	InventoryType string  `json:"inventoryType" bson:"inventoryType" validate:"required"`
 }
 
 type UpdateInventoryID struct {
-	InventoryID string `json:"inventoryID" bson:"inventoryID" validate:"required"`
+	InventoryID string `json:"inventoryID" bson:"inventoryID" validate:"gte=0"`
 }
 
 type UpdateInventoryInput struct {
 	Name          string  `json:"name" bson:"name"`
 	Description   string  `json:"description" bson:"description"`
-	Price         float64 `json:"price" bson:"price"`
-	Quantity      int32   `json:"quantity" bson:"quantity"`
+	Price         float64 `json:"price,string" bson:"price"`
+	Quantity      int32   `json:"quantity,string" bson:"quantity" validate:"gte=0"`
 	InventoryType string  `json:"inventoryType" bson:"inventoryType"`
 }
 
